@@ -1,0 +1,33 @@
+name: Lexa HyperMoE CI
+
+on:
+  push:
+    paths:
+      - "projects/lexa-5d9a-hypermoe/**"
+      - ".github/workflows/lexa-hypermoe-ci.yml"
+  pull_request:
+    paths:
+      - "projects/lexa-5d9a-hypermoe/**"
+      - ".github/workflows/lexa-hypermoe-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    defaults:
+      run:
+        working-directory: projects/lexa-5d9a-hypermoe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: python -m pip install -e .
+      - name: Regenerate analytical data
+        run: python scripts/generate_data.py
+      - name: Test
+        run: python -m unittest discover -s tests -v
