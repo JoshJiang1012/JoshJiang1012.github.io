@@ -4,8 +4,8 @@ The complete v2.0 equation set is embedded in the root README so that GitHub rea
 
 | Mathematical object | Code |
 |---|---|
-| Device effective rates \(P_d,B_d\) | `DeviceSpec.effective_compute_flops`, `effective_bandwidth_bytes_s` |
-| Work assignment \(F_d,Q_d,R_d\) | `models.estimate` |
+| Device effective rates \(P_{d},B_{d}\) | `DeviceSpec.effective_compute_flops`, `effective_bandwidth_bytes_s` |
+| Work assignment \(F_{d},Q_{d},R_{d}\) | `models.estimate` |
 | Roofline service time | `_service_components` |
 | Link transfer | `LinkSpec.transfer_ms` |
 | Critical path | `models.estimate` |
