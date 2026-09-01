@@ -14,7 +14,7 @@ Lexa AsymCompute 是一套用來分析「算力不對稱」的開源工具。它
 核心概念是讓各路徑的**完成時間接近**，而不是把工作平均切成相同份量：
 
 $$
-T_{parallel}=\max_d T_d^{path}.
+T_{\mathrm{parallel}}=\max_{d} T_{d}^{\mathrm{path}}.
 $$
 
 完整公式、實測資料、分析估算與證據分級都放在根目錄 `README.md`。目前公開的 VM 數據是真實量測；GPU／RAM／NVMe 的 80.06 units/s 範例則明確標示為分析估算，不能當成顯卡實際跑分。

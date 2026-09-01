@@ -20,13 +20,13 @@ For stable stages, use at least 10 repetitions. For noisy or remote systems, use
 Mean:
 
 $$
-\bar x=\frac{1}{n}\sum_{i=1}^{n}x_i.
+\bar x=\frac{1}{n}\sum_{i=1}^{n}x_{i}.
 $$
 
 Sample standard deviation:
 
 $$
-s=\sqrt{\frac{1}{n-1}\sum_i(x_i-\bar x)^2}.
+s=\sqrt{\frac{1}{n-1}\sum_{i}(x_{i}-\bar x)^{2}}.
 $$
 
 Approximate 95% confidence interval for sufficiently regular samples:

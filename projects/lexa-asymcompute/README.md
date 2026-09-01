@@ -163,21 +163,21 @@ lexa-asymcompute trace \
 
 Let:
 
-- \(\mathcal D\): set of devices or tiers;
-- \(\mathcal L\): set of directed inter-device links;
-- \(d\in\mathcal D\): one device;
-- \((d,a)\in\mathcal L\): a link from device \(d\) to aggregation device \(a\);
-- \(x_d\in[0,1]\): fraction of divisible work assigned to device \(d\).
+- \(\mathcal{D}\): set of devices or tiers;
+- \(\mathcal{L}\): set of directed inter-device links;
+- \(d\in\mathcal{D}\): one device;
+- \((d,a)\in\mathcal{L}\): a link from device \(d\) to aggregation device \(a\);
+- \(x_{d}\in[0,1]\): fraction of divisible work assigned to device \(d\).
 
 The fractional placement must satisfy:
 
 $$
-\sum_{d\in\mathcal D_e}x_d=1,
+\sum_{d\in\mathcal{D}_{e}}x_{d}=1,
 \qquad
-x_d=0\;\;\forall d\notin\mathcal D_e,
+x_{d}=0\;\;\forall d\notin\mathcal{D}_{e},
 $$
 
-where \(\mathcal D_e\subseteq\mathcal D\) is the eligible-device set.
+where \(\mathcal{D}_{e}\subseteq\mathcal{D}\) is the eligible-device set.
 
 ---
 
@@ -185,20 +185,20 @@ where \(\mathcal D_e\subseteq\mathcal D\) is the eligible-device set.
 
 For each device \(d\), define:
 
-- \(P_d^{peak}\): peak arithmetic rate in FLOP/s;
-- \(B_d^{peak}\): peak local-memory bandwidth in byte/s;
-- \(\eta_d^P\in(0,1]\): effective compute efficiency;
-- \(\eta_d^B\in(0,1]\): effective bandwidth efficiency;
-- \(\ell_d\): fixed per-stage device latency.
+- \(P_{d}^{\mathrm{peak}}\): peak arithmetic rate in FLOP/s;
+- \(B_{d}^{\mathrm{peak}}\): peak local-memory bandwidth in byte/s;
+- \(\eta_{d}^{P}\in(0,1]\): effective compute efficiency;
+- \(\eta_{d}^{B}\in(0,1]\): effective bandwidth efficiency;
+- \(\ell_{d}\): fixed per-stage device latency.
 
 Effective rates are:
 
 $$
-P_d=\eta_d^P P_d^{peak},
+P_{d}=\eta_{d}^{P} P_{d}^{\mathrm{peak}},
 $$
 
 $$
-B_d=\eta_d^B B_d^{peak}.
+B_{d}=\eta_{d}^{B} B_{d}^{\mathrm{peak}}.
 $$
 
 Efficiencies should be calibrated from a representative kernel whenever possible. A vendor peak multiplied by an assumed efficiency remains analytical input, not an observed result.
@@ -209,39 +209,39 @@ Efficiencies should be calibrated from a representative kernel whenever possible
 
 A stage is divided into:
 
-- \(F_p\): divisible arithmetic work in FLOPs;
-- \(Q_p\): divisible local-memory traffic in bytes;
-- \(R_p\): divisible resident state in bytes;
-- \(F_d^m\): mandatory arithmetic work fixed to device \(d\);
-- \(Q_d^m\): mandatory memory traffic fixed to device \(d\);
-- \(R_d^m\): mandatory resident state fixed to device \(d\);
-- \(F_s,Q_s\): serial arithmetic and memory work;
-- \(Q_o\): total output bytes returned to an aggregation device;
-- \(\tau_{sync}\): synchronization overhead.
+- \(F_{p}\): divisible arithmetic work in FLOPs;
+- \(Q_{p}\): divisible local-memory traffic in bytes;
+- \(R_{p}\): divisible resident state in bytes;
+- \(F_{d}^{m}\): mandatory arithmetic work fixed to device \(d\);
+- \(Q_{d}^{m}\): mandatory memory traffic fixed to device \(d\);
+- \(R_{d}^{m}\): mandatory resident state fixed to device \(d\);
+- \(F_{s},Q_{s}\): serial arithmetic and memory work;
+- \(Q_{o}\): total output bytes returned to an aggregation device;
+- \(\tau_{\mathrm{sync}}\): synchronization overhead.
 
 The assigned work on device \(d\) is:
 
 $$
-F_d=x_dF_p+F_d^m,
+F_{d}=x_{d}F_{p}+F_{d}^{m},
 $$
 
 $$
-Q_d=x_dQ_p+Q_d^m,
+Q_{d}=x_{d}Q_{p}+Q_{d}^{m},
 $$
 
 $$
-R_d=x_dR_p+R_d^m.
+R_{d}=x_{d}R_{p}+R_{d}^{m}.
 $$
 
 ---
 
 ## 4. Capacity constraint
 
-For device memory capacity \(C_d\):
+For device memory capacity \(C_{d}\):
 
 $$
-R_d\le C_d
-\qquad\forall d\in\mathcal D.
+R_{d}\le C_{d}
+\qquad\forall d\in\mathcal{D}.
 $$
 
 A placement violating this inequality is infeasible and is rejected rather than assigned an optimistic penalty.
@@ -253,53 +253,53 @@ A placement violating this inequality is infeasible and is rejected rather than 
 Under a roofline-style overlap assumption, arithmetic and local-memory work compete on the slower of the two paths:
 
 $$
-T_d^{compute}=\frac{F_d}{P_d},
+T_{d}^{\mathrm{compute}}=\frac{F_{d}}{P_{d}},
 $$
 
 $$
-T_d^{memory}=\frac{Q_d}{B_d},
+T_{d}^{\mathrm{memory}}=\frac{Q_{d}}{B_{d}},
 $$
 
 $$
-T_d^{service}=\max\left(T_d^{compute},T_d^{memory}\right)+\ell_d.
+T_{d}^{\mathrm{service}}=\max\left(T_{d}^{\mathrm{compute}},T_{d}^{\mathrm{memory}}\right)+\ell_{d}.
 $$
 
 The arithmetic intensity of device shard \(d\) is:
 
 $$
-I_d=\frac{F_d}{Q_d}\quad\text{FLOP/byte}.
+I_{d}=\frac{F_{d}}{Q_{d}}\quad\text{FLOP/byte}.
 $$
 
 The device balance point is:
 
 $$
-I_d^*=\frac{P_d}{B_d}.
+I_{d}^{*}=\frac{P_{d}}{B_{d}}.
 $$
 
 Therefore:
 
-- \(I_d<I_d^*\): shard is bandwidth-bound;
-- \(I_d>I_d^*\): shard is compute-bound;
-- \(I_d\approx I_d^*\): shard is near the roofline knee.
+- \(I_{d}<I_{d}^{*}\): shard is bandwidth-bound;
+- \(I_{d}>I_{d}^{*}\): shard is compute-bound;
+- \(I_{d}\approx I_{d}^{*}\): shard is near the roofline knee.
 
 ---
 
 ## 6. Link transfer time
 
-For link bandwidth \(B_{d,a}^{link}\), link latency \(\ell_{d,a}^{link}\), and output fraction \(x_dQ_o\):
+For link bandwidth \(B_{\mathrm{d,a}}^{\mathrm{link}}\), link latency \(\ell_{\mathrm{d,a}}^{\mathrm{link}}\), and output fraction \(x_{d}Q_{o}\):
 
 $$
-T_{d,a}^{transfer}
+T_{\mathrm{d,a}}^{\mathrm{transfer}}
 =
-\ell_{d,a}^{link}
+\ell_{\mathrm{d,a}}^{\mathrm{link}}
 +
-\frac{x_dQ_o}{B_{d,a}^{link}}.
+\frac{x_{d}Q_{o}}{B_{\mathrm{d,a}}^{\mathrm{link}}}.
 $$
 
 The implementation adds transfer time to the emitting device path:
 
 $$
-T_d^{path}=T_d^{service}+T_{d,a}^{transfer}.
+T_{d}^{\mathrm{path}}=T_{d}^{\mathrm{service}}+T_{\mathrm{d,a}}^{\mathrm{transfer}}.
 $$
 
 When \(d=a\), the transfer term is zero.
@@ -311,7 +311,7 @@ When \(d=a\), the transfer term is zero.
 Concurrent device paths meet at a barrier. The parallel stage is limited by the slowest path:
 
 $$
-T_{parallel}=\max_{d\in\mathcal D_e}T_d^{path}.
+T_{\mathrm{parallel}}=\max_{d\in\mathcal{D}_{e}}T_{d}^{\mathrm{path}}.
 $$
 
 This is the central asymmetric-compute rule: the goal is not equal work, but approximately equal **completion time**.
@@ -319,8 +319,8 @@ This is the central asymmetric-compute rule: the goal is not equal work, but app
 At an unconstrained optimum among active devices:
 
 $$
-T_i^{path}\approx T_j^{path}
-\qquad\forall i,j\text{ with }x_i,x_j>0.
+T_{i}^{\mathrm{path}}\approx T_{j}^{\mathrm{path}}
+\qquad\forall i,j\text{ with }x_{i},x_{j}>0.
 $$
 
 ---
@@ -330,12 +330,12 @@ $$
 For serial device \(s\):
 
 $$
-T_{serial}
+T_{\mathrm{serial}}
 =
 \max\left(
-\frac{F_s}{P_s},
-\frac{Q_s}{B_s}
-\right)+\ell_s.
+\frac{F_{s}}{P_{s}},
+\frac{Q_{s}}{B_{s}}
+\right)+\ell_{s}.
 $$
 
 ---
@@ -346,13 +346,13 @@ The implemented single-stage model is:
 
 $$
 \boxed{
-T_{total}
+T_{\mathrm{total}}
 =
-T_{serial}
+T_{\mathrm{serial}}
 +
-T_{parallel}
+T_{\mathrm{parallel}}
 +
-\tau_{sync}
+\tau_{\mathrm{sync}}
 }
 $$
 
@@ -360,7 +360,7 @@ For one completed workload unit per stage:
 
 $$
 \boxed{
-\Theta=\frac{1}{T_{total}}
+\Theta=\frac{1}{T_{\mathrm{total}}}
 }
 $$
 
@@ -369,46 +369,46 @@ where \(\Theta\) is units/s and all time terms are expressed in seconds.
 For a chain of stages \(k=1,\ldots,K\) without pipeline overlap:
 
 $$
-T_{chain}=\sum_{k=1}^{K}T_{total,k}.
+T_{\mathrm{chain}}=\sum_{k=1}^{K}T_{\mathrm{total,k}}.
 $$
 
 For a steady-state pipeline with independent buffers:
 
 $$
-T_{pipeline,period}=\max_k T_{total,k},
+T_{\mathrm{pipeline,period}}=\max_{k} T_{\mathrm{total,k}},
 $$
 
 $$
-\Theta_{pipeline}=\frac{1}{\max_k T_{total,k}}.
+\Theta_{\mathrm{pipeline}}=\frac{1}{\max_{k} T_{\mathrm{total,k}}}.
 $$
 
 ---
 
 ## 10. Energy model
 
-For device power \(W_d\) in watts:
+For device power \(W_{d}\) in watts:
 
 $$
-E_d^{compute}=W_dT_d^{service}.
+E_{d}^{\mathrm{compute}}=W_{d}T_{d}^{\mathrm{service}}.
 $$
 
-For link energy intensity \(\epsilon_{d,a}\) in joule/byte:
+For link energy intensity \(\epsilon_{\mathrm{d,a}}\) in joule/byte:
 
 $$
-E_{d,a}^{transfer}=\epsilon_{d,a}x_dQ_o.
+E_{\mathrm{d,a}}^{\mathrm{transfer}}=\epsilon_{\mathrm{d,a}}x_{d}Q_{o}.
 $$
 
 Total energy is:
 
 $$
 \boxed{
-E_{total}
+E_{\mathrm{total}}
 =
-E_{serial}
+E_{\mathrm{serial}}
 +
-\sum_d E_d^{compute}
+\sum_{d} E_{d}^{\mathrm{compute}}
 +
-\sum_{(d,a)\in\mathcal L}E_{d,a}^{transfer}
+\sum_{(d,a)\in\mathcal{L}}E_{\mathrm{d,a}}^{\mathrm{transfer}}
 }
 $$
 
@@ -424,65 +424,65 @@ $$
 \boxed{
 J(x)
 =
-\lambda_TT_{total}(x)
+\lambda_{T}T_{\mathrm{total}}(x)
 +
-\lambda_EE_{total}(x)
+\lambda_{E}E_{\mathrm{total}}(x)
 }
 $$
 
 subject to:
 
 $$
-\sum_dx_d=1,
+\sum_{d}x_{d}=1,
 $$
 
 $$
-x_d\ge0,
+x_{d}\ge0,
 $$
 
 $$
-R_d\le C_d,
+R_{d}\le C_{d},
 $$
 
 $$
-x_d=0\quad\forall d\notin\mathcal D_e.
+x_{d}=0\quad\forall d\notin\mathcal{D}_{e}.
 $$
 
 The default is latency-only optimization:
 
 $$
-\lambda_T=1,
+\lambda_{T}=1,
 \qquad
-\lambda_E=0.
+\lambda_{E}=0.
 $$
 
 ---
 
 ## 12. Closed-form bandwidth-only special case
 
-Consider a partitionable traffic amount \(A\), mandatory traffic \(M_d\) on each active tier, ideal overlap and no fixed latency. Let effective bandwidth be \(B_d\). Each path time is:
+Consider a partitionable traffic amount \(A\), mandatory traffic \(M_{d}\) on each active tier, ideal overlap and no fixed latency. Let effective bandwidth be \(B_{d}\). Each path time is:
 
 $$
-T_d=\frac{M_d+x_dA}{B_d}.
+T_{d}=\frac{M_{d}+x_{d}A}{B_{d}}.
 $$
 
-At the balanced optimum, active paths finish together at \(T^*\):
+At the balanced optimum, active paths finish together at \(T^{*}\):
 
 $$
-M_d+x_dA=B_dT^*.
+M_{d}+x_{d}A=B_{d}T^{*}.
 $$
 
-Summing over active tiers and using \(\sum_dx_d=1\):
+Summing over active tiers and using \(\sum_{d}x_{d}=1\):
 
 $$
-\sum_dM_d+A=T^*\sum_dB_d.
+\sum_{d}M_{d}+A=T^{*}\sum_{d}B_{d}.
 $$
 
 Thus:
 
 $$
 \boxed{
-T^*=\frac{A+\sum_dM_d}{\sum_dB_d}
+T^{*}=\frac{A+\sum_{d}M_{d}}{\sum_{d}B_{d}}
 }
 $$
 
@@ -490,19 +490,22 @@ and:
 
 $$
 \boxed{
-x_d^*=\frac{B_dT^*-M_d}{A}}
+x_{d}^{*}
+=
+\frac{B_{d} T^{*} - M_{d}}{A}
+}
 $$
 
-for tiers with positive \(x_d^*\). Negative shares are clamped to zero and the system is re-solved on the remaining active set. Capacity, fixed latency, transfer and discrete placement generally require numerical optimization.
+for tiers with positive \(x_{d}^{*}\). Negative shares are clamped to zero and the system is re-solved on the remaining active set. Capacity, fixed latency, transfer and discrete placement generally require numerical optimization.
 
 ---
 
 ## 13. Asymmetry index
 
-For a positive capability vector \(c=(c_1,\ldots,c_n)\), Jain's fairness index is:
+For a positive capability vector \(c=(c_{1},\ldots,c_{n})\), Jain's fairness index is:
 
 $$
-J(c)=\frac{\left(\sum_{i=1}^nc_i\right)^2}{n\sum_{i=1}^nc_i^2}.
+J(c)=\frac{\left(\sum_{i=1}^{n}c_{i}\right)^{2}}{n\sum_{i=1}^{n}c_{i}^{2}}.
 $$
 
 Lexa defines normalized capability asymmetry as:
@@ -529,22 +532,22 @@ A system can be compute-symmetric but bandwidth-asymmetric, so multiple capabili
 
 ## 14. Speedup and latency reduction
 
-For baseline latency \(T_b\) and optimized latency \(T_o\):
+For baseline latency \(T_{b}\) and optimized latency \(T_{o}\):
 
 $$
-\boxed{S=\frac{T_b}{T_o}}
+\boxed{S=\frac{T_{b}}{T_{o}}}
 $$
 
 $$
-\boxed{R_T=1-\frac{T_o}{T_b}=1-\frac{1}{S}}
+\boxed{R_{T}=1-\frac{T_{o}}{T_{b}}=1-\frac{1}{S}}
 $$
 
-where \(S\) is speedup and \(R_T\) is fractional latency reduction.
+where \(S\) is speedup and \(R_{T}\) is fractional latency reduction.
 
 Throughput gain is:
 
 $$
-G_\Theta=\frac{\Theta_o-\Theta_b}{\Theta_b}=S-1
+G_\Theta=\frac{\Theta_{o}-\Theta_{b}}{\Theta_{b}}=S-1
 $$
 
 when one workload unit is completed per latency interval.
@@ -553,12 +556,12 @@ when one workload unit is completed per latency interval.
 
 ## 15. Amdahl-style upper bound
 
-Let \(f_s\) be the strictly serial fraction and \(f_k\) the fractions accelerated by mechanisms with speedups \(s_k\). Let \(\tau\) be normalized scheduling/transfer overhead. Then:
+Let \(f_{s}\) be the strictly serial fraction and \(f_{k}\) the fractions accelerated by mechanisms with speedups \(s_{k}\). Let \(\tau\) be normalized scheduling/transfer overhead. Then:
 
 $$
 \boxed{
-S_{max}
-=\frac{1}{f_s+\sum_k\frac{f_k}{s_k}+\tau}
+S_{\mathrm{max}}
+=\frac{1}{f_{s}+\sum_{k}\frac{f_{k}}{s_{k}}+\tau}
 }
 $$
 
@@ -573,50 +576,50 @@ Some workloads have a large operator or parameter pool but activate only a subse
 - \(N\): total operators/experts per layer;
 - \(K\): active operators/experts per unit;
 - \(L\): layers;
-- \(S_e\): bytes per operator/expert;
+- \(S_{e}\): bytes per operator/expert;
 - \(D\): mandatory dense traffic per unit.
 
 Active sparse traffic is:
 
 $$
-A=LKS_e.
+A=LKS_{e}.
 $$
 
 All-operator traffic would be:
 
 $$
-A_{full}=LNS_e.
+A_{\mathrm{full}}=LNS_{e}.
 $$
 
 Sparse activation ratio:
 
 $$
-r_e=\frac{K}{N}.
+r_{e}=\frac{K}{N}.
 $$
 
 Sparse work proxy avoided:
 
 $$
-\boxed{1-r_e=1-\frac{K}{N}}
+\boxed{1-r_{e}=1-\frac{K}{N}}
 $$
 
 Active total traffic:
 
 $$
-Q_{active}=D+A.
+Q_{\mathrm{active}}=D+A.
 $$
 
 All-operator total traffic:
 
 $$
-Q_{full}=D+A_{full}.
+Q_{\mathrm{full}}=D+A_{\mathrm{full}}.
 $$
 
 Traffic proxy reduction:
 
 $$
 \boxed{
-R_Q=1-\frac{Q_{active}}{Q_{full}}
+R_{Q}=1-\frac{Q_{\mathrm{active}}}{Q_{\mathrm{full}}}
 }
 $$
 
@@ -626,28 +629,28 @@ This is a weight/operator-traffic proxy. It is not direct joules, FLOPs or wall-
 
 ## 17. Cache residency constraint
 
-For item \(i\), size \(s_i\), device capacity \(C_d\), and binary residency variable \(y_{i,d}\in\{0,1\}\):
+For item \(i\), size \(s_{i}\), device capacity \(C_{d}\), and binary residency variable \(y_{\mathrm{i,d}}\in\{0,1\}\):
 
 $$
-\sum_i s_i y_{i,d}\le C_d.
+\sum_{i} s_{i} y_{\mathrm{i,d}}\le C_{d}.
 $$
 
-With access probability \(p_i\) and tier service cost \(c_{i,d}\), expected access cost is:
+With access probability \(p_{i}\) and tier service cost \(c_{\mathrm{i,d}}\), expected access cost is:
 
 $$
-\mathbb E[C]
+\mathbb{E}[C]
 =
-\sum_i p_i\sum_d y_{i,d}c_{i,d}.
+\sum_{i} p_{i}\sum_{d} y_{\mathrm{i,d}}c_{\mathrm{i,d}}.
 $$
 
 A simple cache-placement objective is:
 
 $$
-\min_y
+\min_{y}
 \left[
-\sum_i p_i\sum_d y_{i,d}c_{i,d}
+\sum_{i} p_{i}\sum_{d} y_{\mathrm{i,d}}c_{\mathrm{i,d}}
 +
-\lambda_{churn}\sum_{i,d}|y_{i,d}^{(t)}-y_{i,d}^{(t-1)}|
+\lambda_{\mathrm{churn}}\sum_{\mathrm{i,d}}|y_{\mathrm{i,d}}^{(t)}-y_{\mathrm{i,d}}^{(t-1)}|
 \right].
 $$
 
@@ -658,27 +661,27 @@ $$
 The route evaluator uses the first fraction \(q\) of token/unit indices for calibration and the remaining \(1-q\) for evaluation:
 
 $$
-\mathcal T_{cal}=\{t:t<t_q\},
+\mathcal{T}_{\mathrm{cal}}=\{t:t<t_{q}\},
 $$
 
 $$
-\mathcal T_{eval}=\{t:t\ge t_q\}.
+\mathcal{T}_{\mathrm{eval}}=\{t:t\ge t_{q}\}.
 $$
 
-For cache set \(C_l\) at layer \(l\), selection hit rate is:
+For cache set \(C_{l}\) at layer \(l\), selection hit rate is:
 
 $$
-H_{selection}
+H_{\mathrm{selection}}
 =
-\frac{\sum_{t,l}|S_{t,l}\cap C_l|}{\sum_{t,l}|S_{t,l}|}.
+\frac{\sum_{\mathrm{t,l}}|S_{\mathrm{t,l}}\cap C_{l}|}{\sum_{\mathrm{t,l}}|S_{\mathrm{t,l}}|}.
 $$
 
 Full-row hit rate is:
 
 $$
-H_{row}
+H_{\mathrm{row}}
 =
-\frac{\sum_{t,l}\mathbf 1[S_{t,l}\subseteq C_l]}{|\mathcal T_{eval}|L}.
+\frac{\sum_{\mathrm{t,l}}\mathbf{1}[S_{\mathrm{t,l}}\subseteq C_{l}]}{|\mathcal{T}_{\mathrm{eval}}|L}.
 $$
 
 The cache is learned only from calibration data; evaluation data is not used to choose entries.
@@ -690,13 +693,13 @@ The cache is learned only from calibration data; evaluation data is not used to 
 If one layer/stage has independent blocking-miss probability \(p\), the probability of at least one miss across \(L\) stages is:
 
 $$
-P_{miss,unit}=1-(1-p)^L.
+P_{\mathrm{miss,unit}}=1-(1-p)^{L}.
 $$
 
 To meet a unit-level miss budget \(\epsilon\):
 
 $$
-1-(1-p)^L\le\epsilon,
+1-(1-p)^{L}\le\epsilon,
 $$
 
 so:
@@ -716,50 +719,50 @@ $$
 
 ## 20. Prefetch horizon
 
-Let item load time be \(T_{load}\) and average stage budget be \(\tau_{stage}\). The minimum look-ahead distance is:
+Let item load time be \(T_{\mathrm{load}}\) and average stage budget be \(\tau_{\mathrm{stage}}\). The minimum look-ahead distance is:
 
 $$
 \boxed{
-H_{prefetch}
+H_{\mathrm{prefetch}}
 \ge
-\left\lceil\frac{T_{load}}{\tau_{stage}}\right\rceil
+\left\lceil\frac{T_{\mathrm{load}}}{\tau_{\mathrm{stage}}}\right\rceil
 }
 $$
 
-A long-tail latency budget should use a percentile such as \(T_{load}^{P99}\), not only the mean:
+A long-tail latency budget should use a percentile such as \(T_{\mathrm{load}}^{P99}\), not only the mean:
 
 $$
-H_{prefetch}^{P99}
+H_{\mathrm{prefetch}}^{P99}
 \ge
-\left\lceil\frac{T_{load}^{P99}}{\tau_{stage}}\right\rceil.
+\left\lceil\frac{T_{\mathrm{load}}^{P99}}{\tau_{\mathrm{stage}}}\right\rceil.
 $$
 
 ---
 
 ## 21. Measurement uncertainty and sensitivity
 
-If effective capability \(c_i\) has relative uncertainty \(u_i\), evaluate a lower and upper scenario:
+If effective capability \(c_{i}\) has relative uncertainty \(u_{i}\), evaluate a lower and upper scenario:
 
 $$
-c_i^- = c_i(1-u_i),
+c_{i}^{-} = c_{i}(1-u_{i}),
 \qquad
-c_i^+ = c_i(1+u_i).
+c_{i}^{+} = c_{i}(1+u_{i}).
 $$
 
 The reported latency interval is:
 
 $$
-T^- = T(c_1^+,\ldots,c_n^+),
+T^{-} = T(c_{1}^{+},\ldots,c_{n}^{+}),
 $$
 
 $$
-T^+ = T(c_1^-,\ldots,c_n^-).
+T^{+} = T(c_{1}^{-},\ldots,c_{n}^{-}).
 $$
 
 Local sensitivity of metric \(Y\) to parameter \(z\) is:
 
 $$
-S_z^Y
+S_{z}^{Y}
 =
 \frac{\partial Y}{\partial z}\frac{z}{Y}.
 $$
@@ -767,7 +770,7 @@ $$
 Finite-difference approximation:
 
 $$
-S_z^Y
+S_{z}^{Y}
 \approx
 \frac{Y(z+\Delta z)-Y(z-\Delta z)}{2\Delta z}\frac{z}{Y(z)}.
 $$
@@ -811,7 +814,7 @@ S=\frac{39.5720}{12.4903}=3.1687\times,
 $$
 
 $$
-R_T=1-\frac{12.4903}{39.5720}=68.43\%.
+R_{T}=1-\frac{12.4903}{39.5720}=68.43\%.
 $$
 
 These numbers are reproducible equation outputs from bundled assumptions, not observed device throughput.
@@ -831,7 +834,7 @@ Lexa AsymCompute is suitable for:
 7. **Database/query execution** — place scans, filters, joins and aggregation according to bandwidth and memory limits.
 8. **Robotics and embedded systems** — balance local reaction latency against remote compute capacity.
 9. **Defensive security analytics** — assign parsing, static analysis, log correlation and model-assisted reasoning to appropriate tiers in authorized environments.
-10. **Battery-aware scheduling** — optimize latency and energy jointly by raising \(\lambda_E\).
+10. **Battery-aware scheduling** — optimize latency and energy jointly by raising \(\lambda_{E}\).
 11. **Storage-backed execution research** — quantify when a cold NVMe tier helps capacity but harms tail latency.
 12. **Education and architecture review** — make hidden assumptions about compute, bandwidth and transfer explicit.
 
