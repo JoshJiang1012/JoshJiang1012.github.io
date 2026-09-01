@@ -11,10 +11,15 @@ on:
       - ".github/workflows/lexa-hypermoe-ci.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
     defaults:
@@ -28,6 +33,46 @@ jobs:
       - name: Install
         run: python -m pip install -e .
       - name: Regenerate analytical data
-        run: python scripts/generate_data.py
-      - name: Test
+        run: |
+          python scripts/generate_data.py
+          find data/synthetic -type f -name '*.csv' -exec sed -i 's/\r$//' {} +
+      - name: Verify generated data is reproducible
+        run: git diff --exit-code -- .
+      - name: Run tests
         run: python -m unittest discover -s tests -v
+      - name: Audit privacy-safe trace contract
+        run: |
+          lexa-hypermoe trace-audit \
+            --trace data/synthetic/router_trace_example.jsonl
+          lexa-hypermoe trace-sweep \
+            --trace data/synthetic/router_trace_example.jsonl \
+            --cache-sizes "1,2,4"
+
+  llama-patch-build:
+    name: Pinned llama.cpp Router Trace build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Clone pinned llama.cpp
+        run: |
+          git clone --filter=blob:none https://github.com/ggml-org/llama.cpp.git /tmp/llama.cpp
+          git -C /tmp/llama.cpp checkout d08c7872d6ffe3f059f8647840a29aa390413e27
+      - name: Verify and apply Router Trace patch
+        run: |
+          python projects/lexa-5d9a-hypermoe/scripts/verify_llama_patch.py \
+            --llama-source /tmp/llama.cpp \
+            --apply
+      - name: Configure CPU-only validation build
+        run: |
+          cmake -S /tmp/llama.cpp -B /tmp/llama-build \
+            -DGGML_CUDA=OFF \
+            -DLLAMA_BUILD_EXAMPLES=ON \
+            -DLLAMA_CURL=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+      - name: Build and smoke-test collector
+        run: |
+          cmake --build /tmp/llama-build --target llama-router-trace -j 2
+          /tmp/llama-build/bin/llama-router-trace --help
