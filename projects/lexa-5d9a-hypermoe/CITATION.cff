@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use the analytical model or generated datasets, cite this repository."
+title: "Lexa 5D9A HyperMoE: Analytical Data for Heterogeneous MoE Inference"
+version: 0.1.0
+date-released: 2026-09-01
+authors:
+  - family-names: Jiang
+    given-names: Josh
+license: Apache-2.0
+repository-code: "https://github.com/JoshJiang1012/JoshJiang1012.github.io/tree/main/projects/lexa-5d9a-hypermoe"
+keywords:
+  - mixture-of-experts
+  - edge inference
+  - expert caching
+  - heterogeneous computing
+  - gpt-oss
