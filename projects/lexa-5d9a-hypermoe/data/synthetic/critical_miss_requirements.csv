@@ -1,0 +1,6 @@
+layers,target_probability_token_has_no_critical_miss,maximum_independent_layer_critical_miss_probability,minimum_layer_critical_miss_avoidance,union_bound_approximation,data_class
+36,0.9,0.002922402435,0.997077597565,0.002777777778,analytical_requirement
+36,0.95,0.001423799168,0.998576200832,0.001388888889,analytical_requirement
+36,0.99,0.00027913703,0.99972086297,0.000277777778,analytical_requirement
+36,0.999,2.779129e-05,0.99997220871,2.7777778e-05,analytical_requirement
+36,0.9999,2.777913e-06,0.999997222087,2.777778e-06,analytical_requirement
