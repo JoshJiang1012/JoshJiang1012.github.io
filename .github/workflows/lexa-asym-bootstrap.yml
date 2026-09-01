@@ -1,0 +1,93 @@
+name: Publish Lexa AsymCompute v2
+
+on:
+  push:
+    branches:
+      - feature/lexa-asymcompute-v2
+    paths:
+      - '.lexa-asym-bootstrap/**'
+      - '.github/workflows/lexa-asym-bootstrap.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/lexa-asymcompute-v2
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Reconstruct and verify source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .lexa-asym-bootstrap/chunk-* > /tmp/lexa-asymcompute.tar.xz.b64
+          base64 --decode /tmp/lexa-asymcompute.tar.xz.b64 > /tmp/lexa-asymcompute.tar.xz
+          echo '5e0701da5c3d2c2c261966a73112889e1a1304f303bb0d4e3fd136c60e3839e7  /tmp/lexa-asymcompute.tar.xz' | sha256sum --check --strict
+          mkdir -p /tmp/lexa-asymcompute-src
+          tar -xJf /tmp/lexa-asymcompute.tar.xz -C /tmp/lexa-asymcompute-src
+
+      - name: Replace the old project with Lexa AsymCompute
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf projects/lexa-hypermoe projects/lexa-asymcompute
+          mkdir -p projects/lexa-asymcompute
+          cp -a /tmp/lexa-asymcompute-src/. projects/lexa-asymcompute/
+          cp projects/lexa-asymcompute/.github/workflows/ci.yml .github/workflows/lexa-asymcompute-ci.yml
+          rm -f .github/workflows/lexa-hypermoe-ci.yml
+          cat > README.md <<'EOF'
+          # Lexa AsymCompute
+
+          **Lexa AsymCompute** is an open-source mathematical and experimental toolkit for scheduling unequal workloads across GPU, CPU, RAM, NVMe, accelerators, cloud resources and edge nodes.
+
+          ## Public project
+
+          ### [Open Lexa AsymCompute](projects/lexa-asymcompute/)
+
+          The project includes:
+
+          - a complete asymmetric-compute mathematical model directly in the README;
+          - FLOP, bandwidth, capacity, transfer, synchronization and energy equations;
+          - generic GPU / CPU / RAM / storage / edge placement optimization;
+          - measured VM and synthetic-pipeline data with explicit provenance;
+          - analytical reference scenarios kept separate from observed measurements;
+          - use-case guidance for local AI, edge computing, media, build farms, scientific workflows, databases, robotics and defensive analytics;
+          - privacy-safe sparse-route trace analysis;
+          - Python 3.10–3.12 continuous integration.
+
+          > Performance values are labelled as observed measurements, observed synthetic-harness results, analytical estimates or analytical proxies. Estimates are never presented as hardware benchmarks.
+          EOF
+
+      - name: Test the extracted release
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd projects/lexa-asymcompute
+          python -m pip install -e .
+          python -m unittest discover -s tests -v
+          python scripts/generate_reference_data.py
+          python scripts/validate_release.py
+          lexa-asymcompute --version
+          lexa-asymcompute formula-summary
+
+      - name: Commit the verified source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .lexa-asym-bootstrap
+          rm -f .github/workflows/lexa-asym-bootstrap.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: publish Lexa AsymCompute v2.0.0'
+          git push origin HEAD:feature/lexa-asymcompute-v2
