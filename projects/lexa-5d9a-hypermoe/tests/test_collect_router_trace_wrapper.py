@@ -91,7 +91,7 @@ class CollectRouterTraceWrapperTests(unittest.TestCase):
             self.assertIn("36", manifest["command"])
             self.assertFalse(manifest["prompt"]["stored"])
             self.assertNotIn("Write a harmless unit test.", json.dumps(manifest))
-            self.assertEqual(manifest["trace_audit"]["event_count"], 1)
+            self.assertEqual(manifest["trace_audit"]["events"], 1)
 
 
 if __name__ == "__main__":
