@@ -109,6 +109,7 @@ jobs:
           set -euo pipefail
           rm -rf bootstrap/lexa-hypermoe-v020
           rm -f .github/workflows/lexa-hypermoe-v020-bootstrap.yml
+          find projects/lexa-5d9a-hypermoe/data/synthetic -type f -name '*.csv' -exec sed -i 's/\r$//' {} +
           git diff --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
