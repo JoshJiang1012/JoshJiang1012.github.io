@@ -1,15 +1,20 @@
-# JoshJiang1012.github.io
+# Lexa AsymCompute
 
-## Open-source projects
+**Lexa AsymCompute** is an open-source mathematical and experimental toolkit for scheduling unequal workloads across GPU, CPU, RAM, NVMe, accelerators, cloud resources and edge nodes.
 
-### [Lexa HyperMoE](projects/lexa-hypermoe/)
+## Public project
 
-A reproducible research toolkit for heterogeneous Mixture-of-Experts inference across GPU VRAM, system RAM, and NVMe.
+### [Open Lexa AsymCompute](projects/lexa-asymcompute/)
 
-- GPT-OSS-120B active-weight traffic model
-- GPU / RAM / NVMe placement optimizer
-- analytical compute-savings report
-- privacy-preserving Router Trace analysis
-- Python 3.10–3.12 continuous integration
+The project includes:
 
-> Performance figures in the repository are analytical estimates unless explicitly accompanied by observed hardware provenance.
+- a complete asymmetric-compute mathematical model directly in the README;
+- FLOP, bandwidth, capacity, transfer, synchronization and energy equations;
+- generic GPU / CPU / RAM / storage / edge placement optimization;
+- measured VM and synthetic-pipeline data with explicit provenance;
+- analytical reference scenarios kept separate from observed measurements;
+- use-case guidance for local AI, edge computing, media, build farms, scientific workflows, databases, robotics and defensive analytics;
+- privacy-safe sparse-route trace analysis;
+- Python 3.10–3.12 continuous integration.
+
+> Performance values are labelled as observed measurements, observed synthetic-harness results, analytical estimates or analytical proxies. Estimates are never presented as hardware benchmarks.

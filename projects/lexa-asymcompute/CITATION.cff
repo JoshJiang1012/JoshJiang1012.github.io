@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: Lexa AsymCompute
+message: If this toolkit supports your research, cite this software and the exact version used.
+type: software
+authors:
+  - family-names: Jiang
+    given-names: Josh
+version: 2.0.0
+date-released: 2026-09-02
+license: MIT

@@ -1,8 +1,0 @@
-{
-  "name": "RTX 4080 + i7-13700 + 32 GiB analytical assumptions",
-  "gpu_effective_gbps": 394.24,
-  "ram_effective_gbps": 50.0,
-  "nvme_effective_gbps": 5.5,
-  "fixed_overhead_ms": 1.5,
-  "expert_cache_gib": 8.0
-}
