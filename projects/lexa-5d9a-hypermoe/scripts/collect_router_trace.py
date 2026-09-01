@@ -29,8 +29,7 @@ def hash_text(value: str) -> str:
 
 def sanitized_command(command: Iterable[str], prompt_file: Path) -> list[str]:
     result: list[str] = []
-    iterator = iter(command)
-    for item in iterator:
+    for item in command:
         result.append("<temporary-prompt-file>" if item == str(prompt_file) else item)
     return result
 
@@ -46,6 +45,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--domain", default="unspecified")
     parser.add_argument("--n-predict", type=int, default=2048)
     parser.add_argument("--gpu-layers", type=int, default=99)
+    parser.add_argument(
+        "--n-cpu-moe",
+        type=int,
+        default=0,
+        help=(
+            "keep MoE weights of the first N layers on the CPU; GPT-OSS-120B has "
+            "36 layers, so 36 is the conservative 16GB-VRAM collection profile"
+        ),
+    )
     parser.add_argument("--ctx-size", type=int, default=4096)
     parser.add_argument("--trace-prefill", action="store_true")
     parser.add_argument("--timeout-seconds", type=float, default=7200)
@@ -66,6 +74,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--model must be a file")
     if args.n_predict < 1 or args.ctx_size < 2:
         parser.error("n-predict and ctx-size must be positive")
+    if args.gpu_layers < 0 or args.n_cpu_moe < 0:
+        parser.error("gpu-layers and n-cpu-moe must be non-negative")
 
     if args.prompt_file is not None:
         prompt_text = args.prompt_file.expanduser().read_text(encoding="utf-8")
@@ -111,6 +121,8 @@ def main(argv: list[str] | None = None) -> int:
             str(prompt_path),
             "--quiet",
         ]
+        if args.n_cpu_moe:
+            command.extend(["--n-cpu-moe", str(args.n_cpu_moe)])
         if args.trace_prefill:
             command.append("--trace-prefill")
 
@@ -152,6 +164,7 @@ def main(argv: list[str] | None = None) -> int:
         "domain": args.domain,
         "n_predict": args.n_predict,
         "gpu_layers": args.gpu_layers,
+        "n_cpu_moe": args.n_cpu_moe,
         "ctx_size": args.ctx_size,
         "trace_prefill": args.trace_prefill,
         "prompt": {
