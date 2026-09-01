@@ -1,0 +1,7 @@
+vram_gib,reserved_vram_gib,expert_cache_gib,expert_size_mib,expert_slots_total,expert_slots_per_layer_mean,data_class
+16.0,6.0,10.0,12.606811523,812,22.555556,analytical_capacity
+16.0,7.0,9.0,12.606811523,731,20.305556,analytical_capacity
+16.0,8.0,8.0,12.606811523,649,18.027778,analytical_capacity
+16.0,9.0,7.0,12.606811523,568,15.777778,analytical_capacity
+16.0,10.0,6.0,12.606811523,487,13.527778,analytical_capacity
+16.0,11.0,5.0,12.606811523,406,11.277778,analytical_capacity
