@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lexa-5d9a-hypermoe"
+version = "0.1.0"
+description = "Reproducible analytical datasets and tooling for heterogeneous GPT-OSS MoE inference research."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [
+  {name = "Josh Jiang"}
+]
+keywords = ["mixture-of-experts", "inference", "edge-computing", "gpt-oss", "cache"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+]
+
+[project.scripts]
+lexa-hypermoe = "lexa_hypermoe.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
