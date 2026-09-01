@@ -1,0 +1,33 @@
+{
+  "active_expert_bytes_per_token": 1903564800.0,
+  "active_expert_parameters_per_token": 3583180800,
+  "active_experts_per_token": 4,
+  "active_parameters_per_token": 5100000000.0,
+  "dense_bytes_per_parameter": 2.0,
+  "estimated_dense_active_parameters_per_token": 1516819200.0,
+  "estimated_dense_bytes_per_token": 3033638400.0,
+  "estimated_total_active_bytes_per_token": 4937203200.0,
+  "expert_bytes_per_parameter": 0.53125,
+  "expert_size_bytes": 13219200.0,
+  "expert_size_mib": 12.6068115234375,
+  "experts_per_layer": 128,
+  "full_attention_layers": 18,
+  "head_dim": 64,
+  "hidden_size": 2880,
+  "intermediate_size": 2880,
+  "key_value_heads": 8,
+  "layers": 36,
+  "name": "openai/gpt-oss-120b",
+  "parameters_per_expert": 24883200,
+  "query_heads": 64,
+  "sliding_attention_layers": 18,
+  "sliding_window": 128,
+  "source_class": "official_config_plus_derived_estimates",
+  "source_notes": [
+    "Architecture constants come from openai/gpt-oss-120b config.json.",
+    "5.1B active parameters comes from the official model card.",
+    "Derived byte traffic is analytical and not an observed benchmark."
+  ],
+  "total_parameters": 116829200000.0,
+  "vocab_size": 201088
+}
