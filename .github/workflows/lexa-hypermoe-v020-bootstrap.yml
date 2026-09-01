@@ -29,16 +29,50 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Reassemble and validate source patch
+      - name: Reassemble, adapt, and validate source patch
         shell: bash
         run: |
           set -euo pipefail
           cat bootstrap/lexa-hypermoe-v020/part-*.b64 > /tmp/lexa-hypermoe-v020.patch.gz.b64
           echo "7611f6f3a64dadeb657abe208c161a74316265d7badd879f2af77fbc4aee367b  /tmp/lexa-hypermoe-v020.patch.gz.b64" | sha256sum -c -
-          base64 -d /tmp/lexa-hypermoe-v020.patch.gz.b64 | gzip -d > /tmp/lexa-hypermoe-v020.patch
-          echo "c678719ba57f65c5b13963e71358f05672cb67c7d2ae756dab2e87f8031b67fd  /tmp/lexa-hypermoe-v020.patch" | sha256sum -c -
+          base64 -d /tmp/lexa-hypermoe-v020.patch.gz.b64 | gzip -d > /tmp/lexa-hypermoe-v020.full.patch
+          echo "c678719ba57f65c5b13963e71358f05672cb67c7d2ae756dab2e87f8031b67fd  /tmp/lexa-hypermoe-v020.full.patch" | sha256sum -c -
+
+          python - <<'PY'
+          from pathlib import Path
+
+          source = Path('/tmp/lexa-hypermoe-v020.full.patch')
+          destination = Path('/tmp/lexa-hypermoe-v020.patch')
+          skipped = {
+              'projects/lexa-5d9a-hypermoe/.github/workflows/ci.yml',
+              'projects/lexa-5d9a-hypermoe/README.md',
+              'projects/lexa-5d9a-hypermoe/src/lexa_hypermoe/cli.py',
+          }
+          blocks = []
+          current = []
+          for line in source.read_text(encoding='utf-8').splitlines(keepends=True):
+              if line.startswith('diff --git '):
+                  if current:
+                      blocks.append(current)
+                  current = [line]
+              else:
+                  current.append(line)
+          if current:
+              blocks.append(current)
+
+          kept = []
+          for block in blocks:
+              header = block[0].strip().split()
+              path = header[2][2:] if len(header) >= 4 else ''
+              if path not in skipped:
+                  kept.extend(block)
+          destination.write_text(''.join(kept), encoding='utf-8')
+          print(f'filtered {len(blocks)} diff blocks; skipped {sorted(skipped)}')
+          PY
+
           git apply --check /tmp/lexa-hypermoe-v020.patch
           git apply --whitespace=nowarn /tmp/lexa-hypermoe-v020.patch
+          chmod +x projects/lexa-5d9a-hypermoe/scripts/*.py
           git diff --check
 
       - name: Validate Python toolkit and privacy contract
@@ -50,7 +84,7 @@ jobs:
           python scripts/generate_data.py
           python -m unittest discover -s tests -v
           lexa-hypermoe trace-audit --trace data/synthetic/router_trace_example.jsonl
-          lexa-hypermoe trace-sweep --trace data/synthetic/router_trace_example.jsonl --cache-sizes 1 2 4
+          lexa-hypermoe trace-sweep --trace data/synthetic/router_trace_example.jsonl --cache-sizes "1,2,4"
 
       - name: Apply patch to pinned llama.cpp and compile collector
         shell: bash
@@ -59,7 +93,7 @@ jobs:
           git clone --filter=blob:none https://github.com/ggml-org/llama.cpp.git /tmp/llama.cpp
           git -C /tmp/llama.cpp checkout d08c7872d6ffe3f059f8647840a29aa390413e27
           python projects/lexa-5d9a-hypermoe/scripts/verify_llama_patch.py \
-            --llama-dir /tmp/llama.cpp \
+            --llama-source /tmp/llama.cpp \
             --apply
           cmake -S /tmp/llama.cpp -B /tmp/llama-build \
             -DGGML_CUDA=OFF \
