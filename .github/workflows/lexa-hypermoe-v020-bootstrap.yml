@@ -44,6 +44,7 @@ jobs:
           source = Path('/tmp/lexa-hypermoe-v020.full.patch')
           destination = Path('/tmp/lexa-hypermoe-v020.patch')
           skipped = {
+              '.github/workflows/lexa-hypermoe-ci.yml',
               'projects/lexa-5d9a-hypermoe/.github/workflows/ci.yml',
               'projects/lexa-5d9a-hypermoe/README.md',
               'projects/lexa-5d9a-hypermoe/src/lexa_hypermoe/cli.py',
@@ -103,12 +104,11 @@ jobs:
           cmake --build /tmp/llama-build --target llama-router-trace -j 2
           /tmp/llama-build/bin/llama-router-trace --help
 
-      - name: Remove bootstrap payload and publish v0.2
+      - name: Publish v0.2 project files
         shell: bash
         run: |
           set -euo pipefail
           rm -rf bootstrap/lexa-hypermoe-v020
-          rm -f .github/workflows/lexa-hypermoe-v020-bootstrap.yml
           find projects/lexa-5d9a-hypermoe/data/synthetic -type f -name '*.csv' -exec sed -i 's/\r$//' {} +
           git diff --check
           git config user.name "github-actions[bot]"
