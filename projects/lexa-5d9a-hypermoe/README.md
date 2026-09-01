@@ -107,14 +107,16 @@ lexa-hypermoe trace \
 
 | File | Meaning |
 |---|---|
-| `throughput_sweep.csv` | GPU efficiency × RAM bandwidth × NVMe path × overhead |
+| `throughput_sweep_reference_slice.csv` | inspectable RTX 4080 reference slice |
+| `throughput_sweep.csv` | full sweep emitted by `scripts/generate_data.py` |
 | `zipf_cache_sweep.csv` | synthetic expert-skew sensitivity |
 | `prefetch_deadline_sweep.csv` | layers of look-ahead required by target throughput |
 | `critical_miss_requirements.csv` | per-layer miss bound for clean-token probability |
 | `vram_capacity_sweep.csv` | expert slots under different reserved-VRAM budgets |
 
 All rows include a `data_class` field. Synthetic rows must never be presented as
-observed benchmark results.
+observed benchmark results. The public tree keeps an immediately inspectable
+reference slice; CI regenerates the complete deterministic throughput sweep.
 
 ## Collecting real data
 
