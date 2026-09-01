@@ -1,0 +1,164 @@
+name: Fix Lexa math rendering
+
+on:
+  push:
+    branches:
+      - fix/lexa-asymcompute-github-math
+    paths:
+      - '.github/workflows/fix-lexa-math-rendering.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/lexa-asymcompute-github-math
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Normalize GitHub-safe KaTeX
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          base = Path('projects/lexa-asymcompute')
+          targets = [
+              base / 'README.md',
+              base / 'docs/BENCHMARK_PROTOCOL.md',
+              base / 'docs/FORMULA_CHEATSHEET.md',
+              base / 'docs/MATHEMATICAL_MODEL.md',
+              base / 'docs/README.zh-TW.md',
+          ]
+
+          text_labels = {
+              'peak','compute','memory','service','link','transfer','path','parallel','serial','total',
+              'chain','pipeline','period','sync','active','full','max','prefetch','stage','load','miss',
+              'unit','selection','row','cal','eval','churn'
+          }
+
+          def normalize_math(s: str) -> str:
+              s = re.sub(r'\\mathcal\s+([A-Za-z])', r'\\mathcal{\1}', s)
+              s = re.sub(r'\\mathbb\s+([A-Za-z])', r'\\mathbb{\1}', s)
+              s = re.sub(r'\\mathbf\s+([A-Za-z0-9])', r'\\mathbf{\1}', s)
+              for op in ('sum', 'max', 'min', 'prod'):
+                  s = re.sub(rf'\\{op}_([A-Za-z])', rf'\\{op}' + r'_{\1}', s)
+              s = re.sub(r'_([A-Za-z0-9])', r'_{\1}', s)
+              s = re.sub(r'\^([A-Za-z0-9*+-])', r'^{\1}', s)
+
+              def sub_label(m):
+                  content = m.group(1)
+                  if re.fullmatch(r'[A-Za-z]+(?:,[A-Za-z]+)*', content):
+                      parts = content.split(',')
+                      if any(p in text_labels for p in parts) or len(content) > 2:
+                          return '_{\\mathrm{' + ','.join(parts) + '}}'
+                  return '_{' + content + '}'
+
+              def sup_label(m):
+                  content = m.group(1)
+                  if re.fullmatch(r'[A-Za-z]+', content) and content in text_labels:
+                      return '^{\\mathrm{' + content + '}}'
+                  return '^{' + content + '}'
+
+              s = re.sub(r'_\{([^{}]+)\}', sub_label, s)
+              s = re.sub(r'\^\{([^{}]+)\}', sup_label, s)
+              return s
+
+          def transform(text: str) -> str:
+              chunks = []
+              pos = 0
+              for m in re.finditer(r'\$\$(.*?)\$\$', text, flags=re.S):
+                  chunks.append(text[pos:m.start()])
+                  chunks.append('$$\n' + normalize_math(m.group(1)).strip() + '\n$$')
+                  pos = m.end()
+              chunks.append(text[pos:])
+              text = ''.join(chunks)
+              text = re.sub(
+                  r'\\\((.*?)\\\)',
+                  lambda m: r'\(' + normalize_math(m.group(1)) + r'\)',
+                  text,
+                  flags=re.S,
+              )
+              return text
+
+          for path in targets:
+              path.write_text(transform(path.read_text(encoding='utf-8')), encoding='utf-8')
+
+          # Make the closed-form equation especially explicit and readable.
+          readme = targets[0]
+          text = readme.read_text(encoding='utf-8')
+          text = text.replace(
+              '\\boxed{\nx_{d}^{*}=\\frac{B_{d}T^{*}-M_{d}}{A}}',
+              '\\boxed{\nx_{d}^{*}\n=\n\\frac{B_{d} T^{*} - M_{d}}{A}\n}',
+          )
+          readme.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate math syntax contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          base = Path('projects/lexa-asymcompute')
+          targets = [
+              base / 'README.md',
+              base / 'docs/BENCHMARK_PROTOCOL.md',
+              base / 'docs/FORMULA_CHEATSHEET.md',
+              base / 'docs/MATHEMATICAL_MODEL.md',
+              base / 'docs/README.zh-TW.md',
+          ]
+          risky = {
+              'unbraced_subscript': r'_[A-Za-z0-9]',
+              'unbraced_superscript': r'\^[A-Za-z0-9*+-]',
+              'unbraced_sum_index': r'\\sum_[A-Za-z0-9]',
+              'unbraced_max_index': r'\\max_[A-Za-z0-9]',
+              'unbraced_mathcal': r'\\mathcal\s+[A-Za-z]',
+          }
+
+          failures = []
+          for path in targets:
+              text = path.read_text(encoding='utf-8')
+              display = re.findall(r'\$\$(.*?)\$\$', text, flags=re.S)
+              inline = re.findall(r'\\\((.*?)\\\)', text, flags=re.S)
+              math = '\n'.join(display + inline)
+              for label, pattern in risky.items():
+                  count = len(re.findall(pattern, math))
+                  if count:
+                      failures.append(f'{path}: {label}={count}')
+              for idx, block in enumerate(display, 1):
+                  if block.count('{') != block.count('}'):
+                      failures.append(f'{path}: display block {idx} has unbalanced braces')
+              if re.search(r'\$\$[^\n]', text) or re.search(r'[^\n]\$\$', text):
+                  failures.append(f'{path}: display math delimiter is not on its own line')
+
+          if failures:
+              raise SystemExit('\n'.join(failures))
+          print('GitHub math syntax contract: PASS')
+          PY
+
+      - name: Commit repaired Markdown
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add projects/lexa-asymcompute/README.md \
+                  projects/lexa-asymcompute/docs/BENCHMARK_PROTOCOL.md \
+                  projects/lexa-asymcompute/docs/FORMULA_CHEATSHEET.md \
+                  projects/lexa-asymcompute/docs/MATHEMATICAL_MODEL.md \
+                  projects/lexa-asymcompute/docs/README.zh-TW.md
+          git diff --cached --check
+          git commit -m 'docs: make math GitHub KaTeX-safe'
+          git push origin HEAD:fix/lexa-asymcompute-github-math
