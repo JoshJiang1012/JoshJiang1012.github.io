@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "project_version": "0.2.0",
+  "upstream_repository": "https://github.com/ggml-org/llama.cpp",
+  "upstream_commit": "d08c7872d6ffe3f059f8647840a29aa390413e27",
+  "upstream_commit_date": "2026-09-01",
+  "patch_file": "d08c7872-router-trace.patch",
+  "patch_sha256": "08c029281107ff51d49d83d07e24cd52936a26860ec8fdc50484f96eef0c01f5",
+  "added_target": "llama-router-trace",
+  "observed_tensor_prefix": "ffn_moe_topk-",
+  "tensor_type": "I32",
+  "trace_schema": "../../data/schemas/router_trace.schema.json",
+  "privacy_contract": {
+    "stored": ["sequence_index", "layer_index", "expert_ids", "phase", "batch_size", "domain", "source"],
+    "not_stored": ["prompt_text", "generated_text", "token_ids", "logits", "probabilities", "embeddings", "hidden_states"]
+  }
+}

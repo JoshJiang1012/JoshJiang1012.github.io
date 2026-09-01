@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/lexa/router_trace_run.schema.json",
+  "title": "Lexa HyperMoE router-trace run manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "data_class",
+    "started_at",
+    "completed_at",
+    "return_code",
+    "binary",
+    "model",
+    "trace",
+    "domain",
+    "prompt"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "data_class": {"type": "string"},
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "format": "date-time"},
+    "duration_seconds": {"type": "number", "minimum": 0},
+    "return_code": {"type": "integer"},
+    "binary": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "model": {
+      "type": "object",
+      "required": ["path", "bytes", "sha256"],
+      "properties": {
+        "path": {"type": "string"},
+        "bytes": {"type": "integer", "minimum": 1},
+        "sha256": {
+          "anyOf": [
+            {"type": "null"},
+            {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "trace": {"type": "string"},
+    "domain": {"type": "string", "maxLength": 128},
+    "n_predict": {"type": "integer", "minimum": 1},
+    "gpu_layers": {"type": "integer"},
+    "ctx_size": {"type": "integer", "minimum": 2},
+    "trace_prefill": {"type": "boolean"},
+    "prompt": {
+      "type": "object",
+      "required": ["sha256", "utf8_bytes", "stored"],
+      "properties": {
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "utf8_bytes": {"type": "integer", "minimum": 1},
+        "stored": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "command": {"type": "array", "items": {"type": "string"}},
+    "stderr_tail": {"type": "string"},
+    "trace_audit": {"type": "object"},
+    "trace_audit_error": {"type": "string"}
+  },
+  "additionalProperties": false
+}

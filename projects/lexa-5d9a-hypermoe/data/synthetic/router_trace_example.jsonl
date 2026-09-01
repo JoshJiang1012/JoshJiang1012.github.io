@@ -1,0 +1,4 @@
+{"schema_version":"2.0","token":128,"layer":0,"experts":[3,19,81,122],"domain":"synthetic-example","phase":"decode","batch_size":1,"source":"synthetic:not-runtime"}
+{"schema_version":"2.0","token":129,"layer":0,"experts":[3,19,80,122],"domain":"synthetic-example","phase":"decode","batch_size":1,"source":"synthetic:not-runtime"}
+{"schema_version":"2.0","token":128,"layer":1,"experts":[1,7,61,110],"domain":"synthetic-example","phase":"decode","batch_size":1,"source":"synthetic:not-runtime"}
+{"schema_version":"2.0","token":129,"layer":1,"experts":[1,8,61,110],"domain":"synthetic-example","phase":"decode","batch_size":1,"source":"synthetic:not-runtime"}

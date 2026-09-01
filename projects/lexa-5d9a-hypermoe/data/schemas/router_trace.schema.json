@@ -1,10 +1,20 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.invalid/lexa/router_trace.schema.json",
-  "title": "Lexa HyperMoE router event",
+  "title": "Lexa HyperMoE privacy-preserving router event v2",
   "type": "object",
-  "required": ["token", "layer", "experts"],
+  "required": [
+    "schema_version",
+    "token",
+    "layer",
+    "experts",
+    "domain",
+    "phase",
+    "batch_size",
+    "source"
+  ],
   "properties": {
+    "schema_version": {"const": "2.0"},
     "token": {"type": "integer", "minimum": 0},
     "layer": {"type": "integer", "minimum": 0},
     "experts": {
@@ -14,11 +24,14 @@
       "items": {"type": "integer", "minimum": 0}
     },
     "domain": {"type": "string", "maxLength": 128},
+    "phase": {"enum": ["prefill", "decode"]},
+    "batch_size": {"type": "integer", "minimum": 1},
+    "source": {"type": "string", "maxLength": 128},
     "timestamp_ns": {"type": "integer", "minimum": 0},
     "gpu_hits": {"type": "integer", "minimum": 0},
     "ram_hits": {"type": "integer", "minimum": 0},
     "nvme_misses": {"type": "integer", "minimum": 0},
     "layer_latency_us": {"type": "number", "minimum": 0}
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }

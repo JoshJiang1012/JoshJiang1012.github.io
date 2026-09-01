@@ -1,18 +1,15 @@
 # Observed data
 
-Version 0.1.0 intentionally contains no claimed RTX 4080 GPT-OSS-120B benchmark.
+This directory is intentionally empty in release 0.2.0.
 
-Place real, documented measurements here using the experiment protocol and
-schemas. Suggested layout:
+Observed submissions should be added only after:
 
-```text
-observed/<campaign-id>/
-├── metadata.json
-├── raw-runtime.log
-├── router-trace.jsonl
-├── latency.csv
-└── summary.json
-```
+1. collecting a trace with the pinned `llama-router-trace` binary;
+2. running `lexa-hypermoe trace-audit` successfully;
+3. including the `.run.json` sidecar manifest;
+4. removing private paths or identifiers from public metadata;
+5. documenting model/runtime hashes and collection settings;
+6. keeping trace-enabled routing runs separate from trace-disabled speed benchmarks.
 
-Avoid committing prompts, completions, secrets, proprietary code, or customer
-data.
+Do not add model weights, prompts, generated text, token IDs, logits, hidden
+states, customer code, credentials, or proprietary filenames.

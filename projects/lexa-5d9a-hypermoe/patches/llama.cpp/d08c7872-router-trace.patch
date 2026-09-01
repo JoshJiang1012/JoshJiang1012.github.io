@@ -1,0 +1,426 @@
+diff --git a/examples/CMakeLists.txt b/examples/CMakeLists.txt
+index 39f802d..57228bb 100644
+--- a/examples/CMakeLists.txt
++++ b/examples/CMakeLists.txt
+@@ -27,6 +27,7 @@ else()
+     add_subdirectory(parallel)
+     add_subdirectory(passkey)
+     add_subdirectory(retrieval)
++    add_subdirectory(router-trace)
+     add_subdirectory(simple)
+     add_subdirectory(simple-chat)
+     add_subdirectory(speculative)
+diff --git a/examples/router-trace/CMakeLists.txt b/examples/router-trace/CMakeLists.txt
+new file mode 100644
+index 0000000..d8db38a
+--- /dev/null
++++ b/examples/router-trace/CMakeLists.txt
+@@ -0,0 +1,5 @@
++set(TARGET llama-router-trace)
++add_executable(${TARGET} router-trace.cpp)
++install(TARGETS ${TARGET} RUNTIME)
++target_link_libraries(${TARGET} PRIVATE llama ggml ${CMAKE_THREAD_LIBS_INIT})
++target_compile_features(${TARGET} PRIVATE cxx_std_17)
+diff --git a/examples/router-trace/router-trace.cpp b/examples/router-trace/router-trace.cpp
+new file mode 100644
+index 0000000..67774bd
+--- /dev/null
++++ b/examples/router-trace/router-trace.cpp
+@@ -0,0 +1,397 @@
++#include "ggml-backend.h"
++#include "llama.h"
++
++#include <algorithm>
++#include <clocale>
++#include <cstdint>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <fstream>
++#include <limits>
++#include <mutex>
++#include <sstream>
++#include <string>
++#include <vector>
++
++enum class trace_phase : uint8_t {
++    prefill = 0,
++    decode  = 1,
++};
++
++struct router_trace_state {
++    std::ofstream output;
++    std::mutex mutex;
++    std::string domain = "unspecified";
++    uint64_t batch_token_base = 0;
++    uint32_t batch_tokens = 0;
++    trace_phase phase = trace_phase::prefill;
++    bool trace_prefill = false;
++    uint64_t max_records = 10'000'000;
++    uint64_t records = 0;
++    uint64_t skipped_records = 0;
++    bool limit_reported = false;
++};
++
++static std::string json_escape(const std::string & value) {
++    std::string result;
++    result.reserve(value.size() + 8);
++    for (const unsigned char ch : value) {
++        switch (ch) {
++            case '\\': result += "\\\\"; break;
++            case '"':  result += "\\\""; break;
++            case '\b': result += "\\b";  break;
++            case '\f': result += "\\f";  break;
++            case '\n': result += "\\n";  break;
++            case '\r': result += "\\r";  break;
++            case '\t': result += "\\t";  break;
++            default:
++                if (ch < 0x20) {
++                    char encoded[7];
++                    std::snprintf(encoded, sizeof(encoded), "\\u%04x", static_cast<unsigned int>(ch));
++                    result += encoded;
++                } else {
++                    result += static_cast<char>(ch);
++                }
++        }
++    }
++    return result;
++}
++
++static bool parse_router_layer(const char * name, int & layer) {
++    static constexpr const char * prefix = "ffn_moe_topk-";
++    const size_t prefix_len = std::char_traits<char>::length(prefix);
++    if (name == nullptr || std::strncmp(name, prefix, prefix_len) != 0) {
++        return false;
++    }
++    char * end = nullptr;
++    const long parsed = std::strtol(name + prefix_len, &end, 10);
++    if (end == name + prefix_len || *end != '\0' || parsed < 0 || parsed > std::numeric_limits<int>::max()) {
++        return false;
++    }
++    layer = static_cast<int>(parsed);
++    return true;
++}
++
++static const char * phase_name(trace_phase phase) {
++    return phase == trace_phase::decode ? "decode" : "prefill";
++}
++
++static bool router_trace_cb(ggml_tensor * tensor, bool ask, void * user_data) {
++    auto * state = static_cast<router_trace_state *>(user_data);
++    int layer = -1;
++    const bool selected_expert_tensor = parse_router_layer(tensor != nullptr ? tensor->name : nullptr, layer);
++
++    if (ask) {
++        if (!selected_expert_tensor) {
++            return false;
++        }
++        return state->phase == trace_phase::decode || state->trace_prefill;
++    }
++
++    if (!selected_expert_tensor) {
++        return true;
++    }
++    if (state->phase == trace_phase::prefill && !state->trace_prefill) {
++        return true;
++    }
++    if (tensor->type != GGML_TYPE_I32) {
++        std::fprintf(stderr, "router-trace: expected I32 expert IDs in %s, got %s\n",
++                tensor->name, ggml_type_name(tensor->type));
++        return true;
++    }
++
++    const int64_t experts_per_token = tensor->ne[0];
++    const int64_t tensor_tokens = tensor->ne[1];
++    if (experts_per_token <= 0 || tensor_tokens <= 0) {
++        return true;
++    }
++
++    std::vector<uint8_t> copied;
++    const uint8_t * data = nullptr;
++    if (ggml_backend_buffer_is_host(tensor->buffer)) {
++        data = static_cast<const uint8_t *>(tensor->data);
++    } else {
++        copied.resize(ggml_nbytes(tensor));
++        ggml_backend_tensor_get(tensor, copied.data(), 0, copied.size());
++        data = copied.data();
++    }
++    if (data == nullptr) {
++        std::fprintf(stderr, "router-trace: tensor %s has no readable data\n", tensor->name);
++        return true;
++    }
++
++    std::lock_guard<std::mutex> guard(state->mutex);
++    for (int64_t token_in_batch = 0; token_in_batch < tensor_tokens; ++token_in_batch) {
++        if (state->records >= state->max_records) {
++            ++state->skipped_records;
++            if (!state->limit_reported) {
++                state->limit_reported = true;
++                std::fprintf(stderr, "router-trace: max record limit reached; additional events are omitted\n");
++            }
++            continue;
++        }
++
++        state->output
++            << "{\"schema_version\":\"2.0\",\"token\":"
++            << (state->batch_token_base + static_cast<uint64_t>(token_in_batch))
++            << ",\"layer\":" << layer
++            << ",\"experts\":[";
++
++        for (int64_t expert_index = 0; expert_index < experts_per_token; ++expert_index) {
++            int32_t expert = -1;
++            const size_t offset = static_cast<size_t>(token_in_batch) * tensor->nb[1]
++                                + static_cast<size_t>(expert_index) * tensor->nb[0];
++            std::memcpy(&expert, data + offset, sizeof(expert));
++            if (expert_index != 0) {
++                state->output << ',';
++            }
++            state->output << expert;
++        }
++
++        state->output
++            << "],\"domain\":\"" << json_escape(state->domain)
++            << "\",\"phase\":\"" << phase_name(state->phase)
++            << "\",\"batch_size\":" << tensor_tokens
++            << ",\"source\":\"llama.cpp:ffn_moe_topk\"}\n";
++        ++state->records;
++    }
++
++    return state->output.good();
++}
++
++static void print_usage(const char * program) {
++    std::fprintf(stderr,
++        "Usage: %s -m MODEL -o TRACE.jsonl [options] [prompt]\n\n"
++        "Options:\n"
++        "  -m PATH                 GGUF model path (required)\n"
++        "  -o PATH                 JSONL trace path (required)\n"
++        "  -n N                    generated tokens (default: 128)\n"
++        "  -ngl N                  GPU layers (default: 99)\n"
++        "  --ctx-size N            context size (default: prompt + generation)\n"
++        "  --domain NAME           non-sensitive workload label (default: unspecified)\n"
++        "  --prompt-file PATH      read prompt without placing it in process arguments\n"
++        "  --trace-prefill         include prompt-prefill routing events\n"
++        "  --max-records N         output record cap (default: 10000000)\n"
++        "  --quiet                 do not print prompt or generated text\n"
++        "  -h, --help              show this help\n\n"
++        "The trace contains sequence indexes, layer indexes, expert IDs, phase, and a caller-supplied\n"
++        "domain label. It does not contain prompt text, token IDs, logits, probabilities, or hidden states.\n",
++        program);
++}
++
++int main(int argc, char ** argv) {
++    std::setlocale(LC_NUMERIC, "C");
++
++    std::string model_path;
++    std::string trace_path;
++    std::string prompt = "Explain why deterministic verification matters in software engineering.";
++    int n_gpu_layers = 99;
++    int n_predict = 128;
++    int n_ctx = 0;
++    bool quiet = false;
++    std::string prompt_file;
++    router_trace_state trace;
++
++    int prompt_index = argc;
++    for (int i = 1; i < argc; ++i) {
++        const std::string arg = argv[i];
++        auto require_value = [&](const char * option) -> const char * {
++            if (i + 1 >= argc) {
++                std::fprintf(stderr, "router-trace: %s requires a value\n", option);
++                print_usage(argv[0]);
++                std::exit(2);
++            }
++            return argv[++i];
++        };
++
++        if (arg == "-h" || arg == "--help") {
++            print_usage(argv[0]);
++            return 0;
++        } else if (arg == "-m") {
++            model_path = require_value("-m");
++        } else if (arg == "-o") {
++            trace_path = require_value("-o");
++        } else if (arg == "-n") {
++            n_predict = std::stoi(require_value("-n"));
++        } else if (arg == "-ngl") {
++            n_gpu_layers = std::stoi(require_value("-ngl"));
++        } else if (arg == "--ctx-size") {
++            n_ctx = std::stoi(require_value("--ctx-size"));
++        } else if (arg == "--domain") {
++            trace.domain = require_value("--domain");
++        } else if (arg == "--prompt-file") {
++            prompt_file = require_value("--prompt-file");
++        } else if (arg == "--trace-prefill") {
++            trace.trace_prefill = true;
++        } else if (arg == "--max-records") {
++            trace.max_records = std::stoull(require_value("--max-records"));
++        } else if (arg == "--quiet") {
++            quiet = true;
++        } else if (!arg.empty() && arg[0] == '-') {
++            std::fprintf(stderr, "router-trace: unknown option: %s\n", arg.c_str());
++            print_usage(argv[0]);
++            return 2;
++        } else {
++            prompt_index = i;
++            break;
++        }
++    }
++
++    if (!prompt_file.empty() && prompt_index < argc) {
++        std::fprintf(stderr, "router-trace: use either --prompt-file or a positional prompt, not both\n");
++        return 2;
++    }
++    if (!prompt_file.empty()) {
++        std::ifstream prompt_stream(prompt_file, std::ios::in | std::ios::binary);
++        if (!prompt_stream) {
++            std::fprintf(stderr, "router-trace: cannot open prompt file\n");
++            return 2;
++        }
++        std::ostringstream prompt_buffer;
++        prompt_buffer << prompt_stream.rdbuf();
++        prompt = prompt_buffer.str();
++        if (prompt.empty()) {
++            std::fprintf(stderr, "router-trace: prompt file is empty\n");
++            return 2;
++        }
++    } else if (prompt_index < argc) {
++        prompt = argv[prompt_index];
++        for (int i = prompt_index + 1; i < argc; ++i) {
++            prompt += ' ';
++            prompt += argv[i];
++        }
++    }
++
++    if (model_path.empty() || trace_path.empty() || n_predict < 1 || trace.max_records < 1) {
++        print_usage(argv[0]);
++        return 2;
++    }
++
++    trace.output.open(trace_path, std::ios::out | std::ios::trunc);
++    if (!trace.output) {
++        std::fprintf(stderr, "router-trace: cannot open output file: %s\n", trace_path.c_str());
++        return 2;
++    }
++
++    ggml_backend_load_all();
++
++    llama_model_params model_params = llama_model_default_params();
++    model_params.n_gpu_layers = n_gpu_layers;
++    llama_model * model = llama_model_load_from_file(model_path.c_str(), model_params);
++    if (model == nullptr) {
++        std::fprintf(stderr, "router-trace: unable to load model\n");
++        return 1;
++    }
++
++    const llama_vocab * vocab = llama_model_get_vocab(model);
++    const int n_prompt = -llama_tokenize(vocab, prompt.c_str(), prompt.size(), nullptr, 0, true, true);
++    if (n_prompt <= 0) {
++        std::fprintf(stderr, "router-trace: failed to size prompt tokens\n");
++        llama_model_free(model);
++        return 1;
++    }
++
++    std::vector<llama_token> prompt_tokens(static_cast<size_t>(n_prompt));
++    if (llama_tokenize(vocab, prompt.c_str(), prompt.size(), prompt_tokens.data(), prompt_tokens.size(), true, true) < 0) {
++        std::fprintf(stderr, "router-trace: failed to tokenize prompt\n");
++        llama_model_free(model);
++        return 1;
++    }
++
++    if (n_ctx <= 0) {
++        n_ctx = n_prompt + n_predict;
++    }
++    if (n_ctx < n_prompt + 1) {
++        std::fprintf(stderr, "router-trace: context size must fit the prompt and at least one generated token\n");
++        llama_model_free(model);
++        return 2;
++    }
++
++    llama_context_params ctx_params = llama_context_default_params();
++    ctx_params.n_ctx = static_cast<uint32_t>(n_ctx);
++    ctx_params.n_batch = static_cast<uint32_t>(std::max(1, n_prompt));
++    ctx_params.no_perf = false;
++    ctx_params.cb_eval = router_trace_cb;
++    ctx_params.cb_eval_user_data = &trace;
++
++    llama_context * ctx = llama_init_from_model(model, ctx_params);
++    if (ctx == nullptr) {
++        std::fprintf(stderr, "router-trace: failed to create context\n");
++        llama_model_free(model);
++        return 1;
++    }
++
++    llama_sampler_chain_params sampler_params = llama_sampler_chain_default_params();
++    sampler_params.no_perf = false;
++    llama_sampler * sampler = llama_sampler_chain_init(sampler_params);
++    llama_sampler_chain_add(sampler, llama_sampler_init_greedy());
++
++    if (!quiet) {
++        std::fwrite(prompt.data(), 1, prompt.size(), stdout);
++        std::fflush(stdout);
++    }
++
++    llama_batch batch = llama_batch_get_one(prompt_tokens.data(), prompt_tokens.size());
++    int n_pos = 0;
++    int n_decode = 0;
++    llama_token new_token_id = LLAMA_TOKEN_NULL;
++    const int64_t started_us = ggml_time_us();
++
++    while (n_pos + batch.n_tokens < n_prompt + n_predict) {
++        trace.batch_token_base = static_cast<uint64_t>(n_pos);
++        trace.batch_tokens = static_cast<uint32_t>(batch.n_tokens);
++        trace.phase = n_pos == 0 ? trace_phase::prefill : trace_phase::decode;
++
++        if (llama_decode(ctx, batch) != 0) {
++            std::fprintf(stderr, "router-trace: llama_decode failed\n");
++            llama_sampler_free(sampler);
++            llama_free(ctx);
++            llama_model_free(model);
++            return 1;
++        }
++        n_pos += batch.n_tokens;
++
++        new_token_id = llama_sampler_sample(sampler, ctx, -1);
++        if (llama_vocab_is_eog(vocab, new_token_id)) {
++            break;
++        }
++
++        if (!quiet) {
++            char piece[256];
++            const int piece_size = llama_token_to_piece(vocab, new_token_id, piece, sizeof(piece), 0, true);
++            if (piece_size > 0) {
++                std::fwrite(piece, 1, static_cast<size_t>(piece_size), stdout);
++                std::fflush(stdout);
++            }
++        }
++
++        batch = llama_batch_get_one(&new_token_id, 1);
++        ++n_decode;
++    }
++
++    trace.output.flush();
++    if (!quiet) {
++        std::fputc('\n', stdout);
++    }
++
++    const int64_t elapsed_us = ggml_time_us() - started_us;
++    const double seconds = elapsed_us > 0 ? static_cast<double>(elapsed_us) / 1'000'000.0 : 0.0;
++    const double tokens_per_second = seconds > 0.0 ? static_cast<double>(n_decode) / seconds : 0.0;
++    std::fprintf(stderr,
++            "router-trace: decoded=%d records=%llu skipped=%llu elapsed=%.3fs speed=%.3f tok/s trace=%s\n",
++            n_decode,
++            static_cast<unsigned long long>(trace.records),
++            static_cast<unsigned long long>(trace.skipped_records),
++            seconds,
++            tokens_per_second,
++            trace_path.c_str());
++
++    llama_perf_sampler_print(sampler);
++    llama_perf_context_print(ctx);
++
++    llama_sampler_free(sampler);
++    llama_free(ctx);
++    llama_model_free(model);
++    return 0;
++}
