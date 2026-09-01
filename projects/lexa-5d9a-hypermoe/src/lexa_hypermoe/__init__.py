@@ -15,23 +15,13 @@ from .model import (
     prefetch_horizon_layers,
     zipf_probability_mass,
 )
-from .trace import (
-    HotExpertPlan,
-    RouterEvent,
-    TraceAudit,
-    cache_sweep,
-    holdout_cache_report,
-    holdout_cache_sweep,
-    trace_audit,
-    trace_quality_report,
-)
+from .trace import RouterEvent, TraceAudit, cache_sweep, trace_audit
 
 __version__ = "1.0.0"
 
 __all__ = [
     "CachePolicyStats",
     "HardwareProfile",
-    "HotExpertPlan",
     "ModelSpec",
     "Placement",
     "RouterEvent",
@@ -41,8 +31,6 @@ __all__ = [
     "cache_sweep",
     "closed_form_unconstrained_placement",
     "estimate_throughput",
-    "holdout_cache_report",
-    "holdout_cache_sweep",
     "layer_budget_ms",
     "max_layer_miss_probability",
     "optimize_placement",
@@ -51,6 +39,5 @@ __all__ = [
     "simulate_lru",
     "simulate_warmup_static",
     "trace_audit",
-    "trace_quality_report",
     "zipf_probability_mass",
 ]
