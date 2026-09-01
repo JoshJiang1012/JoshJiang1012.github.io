@@ -3,88 +3,84 @@
 [![CI](https://github.com/JoshJiang1012/JoshJiang1012.github.io/actions/workflows/lexa-hypermoe-ci.yml/badge.svg)](https://github.com/JoshJiang1012/JoshJiang1012.github.io/actions/workflows/lexa-hypermoe-ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-A reproducible analytical toolkit and dataset for studying **heterogeneous,
-memory-tiered Mixture-of-Experts inference** on consumer hardware.
+A reproducible research toolkit for **heterogeneous, memory-tiered
+Mixture-of-Experts inference** on consumer hardware.
 
-The first reference target is OpenAI GPT-OSS-120B on a system shaped like:
+The reference target is GPT-OSS-120B on a system shaped like:
 
 - NVIDIA RTX 4080 16 GiB;
 - Intel Core i7-13700;
 - 32 GiB system RAM;
 - NVMe backing storage.
 
-The project models a proposed **5D9A HyperMoE** scheduler that distributes active
-expert work across GPU VRAM, CPU/RAM, and NVMe-backed cold storage while tracking
-cache hit rate, critical misses, prefetch distance, and fixed runtime overhead.
+Version **0.2.0** adds a pinned `llama.cpp` Router Trace collector so the
+synthetic cache assumptions can be replaced with observed per-layer Expert
+routing metadata.
 
-> **Important:** the included RTX 4080 numbers are analytical assumptions unless
-> explicitly marked `observed`. This repository does **not** claim that GPT-OSS-120B
-> has already reached 90 tokens/s on that machine.
+> **Evidence boundary:** RTX 4080 throughput values remain analytical assumptions
+> unless explicitly marked `observed`. This repository does not claim that
+> GPT-OSS-120B has reached 90 tokens/s on that system.
 
-## What is included
+## Included
 
 ```text
 src/lexa_hypermoe/
-├── model.py          # equations, tier optimizer, Zipf and deadline helpers
-├── trace.py          # JSONL router-trace analysis
+├── model.py          # equations, tier optimizer, Zipf/deadline helpers
+├── trace.py          # privacy-safe route audit, cache sweep, temporal locality
 └── cli.py            # reproducible CLI
+
+patches/llama.cpp/
+├── d08c7872-router-trace.patch
+├── manifest.json
+└── README.md
+
+scripts/
+├── generate_data.py
+├── calibrate_host.py
+├── verify_llama_patch.py
+├── collect_router_trace.py
+└── analyze_router_trace.py
 
 data/
 ├── model/            # official constants + derived traffic estimates
 ├── hardware/         # explicit assumption profiles
-├── synthetic/        # formula-generated parameter sweeps
-├── observed/         # reserved for real benchmark submissions
-└── schemas/          # router-trace and benchmark schemas
-
-scripts/
-├── generate_data.py  # rebuild all synthetic datasets and reports
-├── calibrate_host.py # safe host calibration helper
-└── analyze_router_trace.py
+├── synthetic/        # formula-generated sweeps and a synthetic trace example
+├── observed/         # reserved for real submissions
+└── schemas/          # trace and run-manifest contracts
 ```
 
-## Core model
+## Analytical core
 
-For a model with `L` layers, `K` active experts per layer, hidden dimension `d`,
-and expert intermediate dimension `m`, the approximation uses:
+For `L` layers, `K` active Experts per layer, hidden dimension `d`, Expert
+intermediate dimension `m`, and storage cost `q` bytes/weight:
 
 ```text
-parameters per expert = 3 d m
-active expert bytes/token = L K (3 d m) q
+parameters per Expert       = 3 d m
+active Expert bytes/token   = L K (3 d m) q
 ```
 
-where `q = 17/32 bytes/weight` approximates native MXFP4 storage including one
-E8M0 scale byte per 32 packed FP4 values.
-
-The three expert paths overlap:
+The three Expert-service paths overlap:
 
 ```text
-GPU time   = (dense bytes + h_gpu × expert bytes) / GPU effective bandwidth
-RAM time   = h_ram × expert bytes / RAM effective bandwidth
-NVMe time  = h_nvme × expert bytes / NVMe effective path bandwidth
+GPU time   = (dense bytes + h_gpu × Expert bytes) / GPU effective bandwidth
+RAM time   = h_ram × Expert bytes / RAM effective bandwidth
+NVMe time  = h_nvme × Expert bytes / NVMe effective path bandwidth
 
 token time = max(GPU time, RAM time, NVMe time)
            + fixed overhead
            + expected critical-miss penalty
 ```
 
-`h_gpu + h_ram + h_nvme = 1`.
+with `h_gpu + h_ram + h_nvme = 1`.
 
-See [`docs/MATHEMATICAL_MODEL.md`](docs/MATHEMATICAL_MODEL.md) for assumptions,
-derivations, capacity constraints, and limitations.
+See [`docs/MATHEMATICAL_MODEL.md`](docs/MATHEMATICAL_MODEL.md).
 
 ## Quick start
 
-Python 3.10 or newer is sufficient.
-
-```bash
-python scripts/generate_data.py
-python -m unittest discover -s tests -v
-```
-
-Install the CLI locally:
-
 ```bash
 python -m pip install -e .
+python scripts/generate_data.py
+python -m unittest discover -s tests -v
 ```
 
 Run the RTX 4080 assumption profile:
@@ -95,76 +91,142 @@ lexa-hypermoe estimate \
   --hardware data/hardware/rtx4080_i7_13700_32gb_assumed.json
 ```
 
-Analyze a real router trace:
+## Build the real Router Trace collector
+
+The patch is pinned to:
+
+```text
+ggml-org/llama.cpp
+d08c7872d6ffe3f059f8647840a29aa390413e27
+```
+
+```bash
+git clone https://github.com/ggml-org/llama.cpp.git
+cd llama.cpp
+git checkout d08c7872d6ffe3f059f8647840a29aa390413e27
+
+python /path/to/lexa-5d9a-hypermoe/scripts/verify_llama_patch.py \
+  --llama-source . \
+  --apply
+
+cmake -S . -B build \
+  -DLLAMA_BUILD_EXAMPLES=ON \
+  -DLLAMA_CURL=OFF \
+  -DGGML_CUDA=ON
+cmake --build build --target llama-router-trace -j
+```
+
+The patch adds a dedicated executable without changing model weights, GPT-OSS
+routing, `ggml_mul_mat_id`, CUDA kernels, or sampling.
+
+## Collect decode routing
+
+```bash
+python scripts/collect_router_trace.py \
+  --binary /path/to/llama-router-trace \
+  --model /models/gpt-oss-120b.gguf \
+  --output data/observed/coding-session-001.jsonl \
+  --prompt-file /private/prompts/coding-session-001.txt \
+  --domain coding \
+  --n-predict 4096 \
+  --ctx-size 8192 \
+  --gpu-layers 99
+```
+
+The trace stores sequence indexes and Expert IDs, not prompt text, generated
+text, token IDs, logits, probabilities, embeddings, or hidden states. The sidecar
+run manifest stores only the prompt SHA-256 and UTF-8 byte count.
+
+Audit the trace:
+
+```bash
+lexa-hypermoe trace-audit \
+  --trace data/observed/coding-session-001.jsonl
+```
+
+Measure a top-18 cache and temporal locality:
 
 ```bash
 lexa-hypermoe trace \
-  --trace data/observed/router-trace.jsonl \
+  --trace data/observed/coding-session-001.jsonl \
+  --phase decode \
   --cached-experts-per-layer 18
 ```
 
-## Generated datasets
+Compare cache sizes:
+
+```bash
+lexa-hypermoe trace-sweep \
+  --trace data/observed/coding-session-001.jsonl \
+  --phase decode \
+  --cache-sizes 4,8,12,16,18,20,24,32
+```
+
+Full instructions: [`docs/ROUTER_TRACE.md`](docs/ROUTER_TRACE.md).
+
+## Trace event
+
+```json
+{
+  "schema_version": "2.0",
+  "token": 42,
+  "layer": 7,
+  "experts": [3, 19, 81, 122],
+  "domain": "coding",
+  "phase": "decode",
+  "batch_size": 1,
+  "source": "llama.cpp:ffn_moe_topk"
+}
+```
+
+The Python parser is fail-closed: privacy-forbidden and unknown fields are
+rejected by default.
+
+## Generated analytical datasets
 
 | File | Meaning |
 |---|---|
-| `throughput_sweep_reference_slice.csv` | inspectable RTX 4080 reference slice |
-| `throughput_sweep.csv` | full sweep emitted by `scripts/generate_data.py` |
-| `zipf_cache_sweep.csv` | synthetic expert-skew sensitivity |
-| `prefetch_deadline_sweep.csv` | layers of look-ahead required by target throughput |
+| `throughput_sweep.csv` | GPU efficiency × RAM bandwidth × NVMe path × overhead |
+| `zipf_cache_sweep.csv` | synthetic Expert-skew sensitivity |
+| `prefetch_deadline_sweep.csv` | look-ahead layers required by target throughput |
 | `critical_miss_requirements.csv` | per-layer miss bound for clean-token probability |
-| `vram_capacity_sweep.csv` | expert slots under different reserved-VRAM budgets |
+| `vram_capacity_sweep.csv` | Expert slots under reserved-VRAM budgets |
 
-All rows include a `data_class` field. Synthetic rows must never be presented as
-observed benchmark results. The public tree keeps an immediately inspectable
-reference slice; CI regenerates the complete deterministic throughput sweep.
-
-## Collecting real data
-
-1. Calibrate the host:
-
-   ```bash
-   python scripts/calibrate_host.py --output data/observed/host-profile.local.json
-   ```
-
-2. Instrument an inference runtime to emit only numeric routing events:
-
-   ```json
-   {"token": 42, "layer": 7, "experts": [3, 19, 81, 122], "domain": "coding"}
-   ```
-
-3. Analyze top-N cache performance with `lexa-hypermoe trace`.
-4. Publish model hash, runtime commit, context, warm-up, P50/P95/P99, and raw logs.
-
-The exact schema is in [`data/schemas/router_trace.schema.json`](data/schemas/router_trace.schema.json).
+All synthetic rows include a `data_class`; they must not be presented as
+observed benchmark results.
 
 ## Research status
 
 Implemented:
 
-- deterministic analytical model;
-- constrained GPU/RAM/NVMe placement search;
-- VRAM expert-slot estimates;
-- Zipf sensitivity sweeps;
-- critical-miss probability requirements;
-- multi-horizon prefetch calculations;
-- router-trace hit-rate analysis;
-- reproducible CI and datasets.
+- deterministic GPU/RAM/NVMe analytical model;
+- constrained placement optimizer;
+- cache-capacity, Zipf, prefetch, and critical-miss sweeps;
+- pinned `llama.cpp` route-collector patch;
+- strict privacy audit and schema;
+- static top-N cache analysis;
+- consecutive-token Expert-overlap analysis;
+- run provenance manifest;
+- tests and CI for Python 3.10–3.12;
+- CI build validation of the patched `llama-router-trace` target.
 
 Not implemented:
 
-- a patched llama.cpp runtime;
-- GPU-resident dynamic expert slots;
+- GPU-resident dynamic Expert slots;
 - fused MXFP4 CPU/GPU kernels;
 - residual-based future-router prediction;
-- exact speculative decoding integration;
-- a verified 90 tok/s GPT-OSS-120B result on RTX 4080.
+- asynchronous NVMe Expert paging;
+- exact speculative-decoding integration;
+- a verified GPT-OSS-120B performance result on RTX 4080.
 
 ## Source provenance
 
-The model constants are based on the official GPT-OSS configuration and model
-card. MXFP4 packing follows the official GPT-OSS reference code. External
-references and exact links are listed in
-[`docs/REFERENCES.md`](docs/REFERENCES.md).
+Model constants come from the official GPT-OSS configuration and model card.
+MXFP4 packing follows the official GPT-OSS reference code. The route patch is
+pinned to a specific upstream `llama.cpp` commit and verifies the expected
+`ffn_moe_topk` graph marker before applying.
+
+See [`docs/REFERENCES.md`](docs/REFERENCES.md).
 
 ## License
 
