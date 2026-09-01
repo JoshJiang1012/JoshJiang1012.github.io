@@ -1,0 +1,18 @@
+{
+  "expert_cache_bytes": 8589934592.0,
+  "expert_slots": 649,
+  "expert_slots_per_layer_mean": 18.02777777777778,
+  "fixed_overhead_ms": 1.5,
+  "gpu_effective_bandwidth_gbps": 394.24,
+  "gpu_efficiency": 0.55,
+  "gpu_peak_bandwidth_gbps": 716.8,
+  "measurement_status": "assumed_not_measured",
+  "name": "RTX 4080 + i7-13700 + 32 GiB (assumption profile)",
+  "nvme_effective_bandwidth_gbps": 5.5,
+  "pcie_effective_bandwidth_gbps": 24.0,
+  "ram_effective_bandwidth_gbps": 50.0,
+  "ram_gib": 32.0,
+  "reserved_vram_gib": 8.0,
+  "vram_gib": 16.0,
+  "warning": "Replace effective bandwidths with host measurements before treating throughput estimates as hardware-specific."
+}
