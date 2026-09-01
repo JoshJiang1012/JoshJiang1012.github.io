@@ -1,0 +1,23 @@
+[
+  {
+    "classification": "analytical_estimate_not_observed_benchmark",
+    "placement": "{\"cpu_ram\": 0.03, \"gpu\": 0.97}",
+    "scenario": "generic-edge-pipeline",
+    "total_ms": 54.376542207792205,
+    "units_per_second": 18.390283004363216
+  },
+  {
+    "classification": "analytical_estimate_not_observed_benchmark",
+    "placement": "{\"gpu\": 0.0, \"nvme\": 0.0, \"ram\": 1.0}",
+    "scenario": "sparse-three-tier-cpu-baseline",
+    "total_ms": 39.571999999999996,
+    "units_per_second": 25.27039320731831
+  },
+  {
+    "classification": "analytical_estimate_not_observed_benchmark",
+    "placement": "{\"gpu\": 0.6825, \"nvme\": 0.03, \"ram\": 0.2875}",
+    "scenario": "sparse-three-tier-optimized",
+    "total_ms": 12.490277495941557,
+    "units_per_second": 80.06227246151482
+  }
+]

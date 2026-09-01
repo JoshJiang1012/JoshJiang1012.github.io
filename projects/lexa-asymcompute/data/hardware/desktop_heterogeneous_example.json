@@ -1,0 +1,40 @@
+{
+  "name": "desktop-gpu-cpu-nvme-example",
+  "devices": [
+    {
+      "name": "gpu",
+      "compute_tflops": 48.7,
+      "memory_bandwidth_gbps": 716.8,
+      "memory_gib": 16.0,
+      "compute_efficiency": 0.55,
+      "bandwidth_efficiency": 0.55,
+      "fixed_latency_ms": 0.05,
+      "power_watts": 260.0
+    },
+    {
+      "name": "cpu_ram",
+      "compute_tflops": 1.0,
+      "memory_bandwidth_gbps": 89.6,
+      "memory_gib": 32.0,
+      "compute_efficiency": 0.50,
+      "bandwidth_efficiency": 0.56,
+      "fixed_latency_ms": 0.10,
+      "power_watts": 90.0
+    },
+    {
+      "name": "nvme",
+      "compute_tflops": 0.01,
+      "memory_bandwidth_gbps": 7.0,
+      "memory_gib": 1000.0,
+      "compute_efficiency": 0.10,
+      "bandwidth_efficiency": 0.79,
+      "fixed_latency_ms": 0.20,
+      "power_watts": 8.0
+    }
+  ],
+  "links": [
+    {"source": "cpu_ram", "target": "gpu", "bandwidth_gbps": 24.0, "latency_ms": 0.02},
+    {"source": "nvme", "target": "gpu", "bandwidth_gbps": 5.5, "latency_ms": 0.20},
+    {"source": "nvme", "target": "cpu_ram", "bandwidth_gbps": 5.5, "latency_ms": 0.15}
+  ]
+}

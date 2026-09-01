@@ -1,0 +1,343 @@
+{
+  "classification": "release_source_manifest",
+  "files": [
+    {
+      "path": ".github/ISSUE_TEMPLATE/benchmark_submission.yml",
+      "sha256": "0bc23472c2f3b9b3d4f7e8583ed6095f53728e6fcf12d80a960e9c749bcd996a",
+      "size": 901
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "sha256": "362225d08f6365d96fc639fdf8e6dc94ee6dbb90553a101d344c740632a811c4",
+      "size": 538
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "sha256": "fd11a3db57e930c7924c4d77493692de55dcc539a443a17bb85a109d06bb13e1",
+      "size": 350
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "3a7a44cca0a2d91394cd7d24126912ad6d2c03f383cd05bb4bf6db78cb6ea890",
+      "size": 989
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "09f87109c75eb18b867ebbafbc8646edbb000695d6ba7b0a7eb42690d85a82fe",
+      "size": 78
+    },
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "b1cdb5e7d0c70eea6490da95e76a8af6c2d8325aa0ab9b1078734e6c7d81a6ed",
+      "size": 590
+    },
+    {
+      "path": "CITATION.cff",
+      "sha256": "952c7566d598d4411651b52aa216f8a95d80e4af9e3af28f274e1400390123d4",
+      "size": 263
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "sha256": "035f92b058bea03bd88d4263467ba7059d26d3a6a76ff26cfc00ed447b41f4c5",
+      "size": 236
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "sha256": "5b8046e48c0b04dc760ee0781495b90f185833d190479158a120d45166311c9f",
+      "size": 458
+    },
+    {
+      "path": "GOVERNANCE.md",
+      "sha256": "ad73dc979773813a09640b4079736bb0fe76be28314f6db258dd83ec20691ea1",
+      "size": 427
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "958cdeae1f0ee019728dd33bac76521c54d5073a647a5ea23d81bc838ac8f82b",
+      "size": 1067
+    },
+    {
+      "path": "Makefile",
+      "sha256": "d142432ac02a72ca805d5e608e017a8d4ac179c19ee51187f5a258ed90912414",
+      "size": 327
+    },
+    {
+      "path": "README.md",
+      "sha256": "62f42091744d3d9dde4f73ea47bda5bd35652870fe24be80969e59ce2e4f112c",
+      "size": 21022
+    },
+    {
+      "path": "RELEASE_NOTES.md",
+      "sha256": "25e34b6c6791da600e2c98d2e61ee86a9db32e2d21ead6744cff139210e6fac1",
+      "size": 550
+    },
+    {
+      "path": "ROADMAP.md",
+      "sha256": "5d1b85852b567ffa466dc54d661fd3c8df10716a9f89c01972d90e7b93981909",
+      "size": 484
+    },
+    {
+      "path": "SECURITY.md",
+      "sha256": "84e8318dfcbac221ab6ecf4a9d21f707520d1acf5bfe8d34f8618d40ad07b27f",
+      "size": 421
+    },
+    {
+      "path": "VERSION",
+      "sha256": "c28fcca53637bc88e124af1725df13cb98c69dedefd62fb3cdbe1cdb6b760624",
+      "size": 6
+    },
+    {
+      "path": "benchmarks/README.md",
+      "sha256": "68dd3977fe916059011883c26e7955dd9f71321f748e421f2c4be6819233e81b",
+      "size": 318
+    },
+    {
+      "path": "benchmarks/submission.schema.json",
+      "sha256": "a9c11db3a1e2910ef34d256f69d6630ba3ec13cfdc2ad10757acb394fc92fa1e",
+      "size": 857
+    },
+    {
+      "path": "data/README.md",
+      "sha256": "cca9dcf6a3c43ebd0f29f6650d16191943563b4c0bedc90c715507de9a553b8e",
+      "size": 411
+    },
+    {
+      "path": "data/analytical/reference_scenarios.csv",
+      "sha256": "4a5ad17caffcdfea56e3c89b74caa50dc43eed6250018cb07dd8a0b39bf5f61b",
+      "size": 522
+    },
+    {
+      "path": "data/analytical/reference_scenarios.json",
+      "sha256": "6729d6b63addeab9ddb0b98fe2619443e434a0fe2d5b31c93906207fbd9d7256",
+      "size": 797
+    },
+    {
+      "path": "data/hardware/desktop_heterogeneous_example.json",
+      "sha256": "f15b86617ce127ce5ef5e23ab08a78447a468bd0dc061ae186949739161ff003",
+      "size": 1112
+    },
+    {
+      "path": "data/hardware/moe_three_tier_assumed.json",
+      "sha256": "04279aba795f85f2ed96871f2eaa8da5f52de02a06e443e386e190165819e013",
+      "size": 195
+    },
+    {
+      "path": "data/observed/release_validation_2026-09-02.json",
+      "sha256": "47b68bec825ccc23d735ab9e6307fc3cbc1c8fd16664dfe03345aa10742e1820",
+      "size": 2233
+    },
+    {
+      "path": "data/observed/synthetic_trace_pipeline_2026-09-02.json",
+      "sha256": "f7fc581dd173a4b0bdeabfab6f819aba11eb2318f0534ad3049b577569aab106",
+      "size": 983
+    },
+    {
+      "path": "data/observed/virtual_environment_2026-09-02.json",
+      "sha256": "7e34c55fb1d04738f5ec996b88f34be7af3eeb00f31126347dd418b1c9b4f9c0",
+      "size": 976
+    },
+    {
+      "path": "data/schemas/hardware.schema.json",
+      "sha256": "a950c48b09e501440806540f7302ee641102c625e7ca564b4b5b52c4d530fb07",
+      "size": 1136
+    },
+    {
+      "path": "data/schemas/workload.schema.json",
+      "sha256": "3c396822984e15a201b4005ea32f7eb97c11d60a1b1311338cf02648f95dc66f",
+      "size": 1213
+    },
+    {
+      "path": "data/workloads/edge_pipeline_example.json",
+      "sha256": "c6d65cd03971da4879cbc4e722a0269b6c4bd01df7d64385a7deb6e769d8dee5",
+      "size": 561
+    },
+    {
+      "path": "data/workloads/sparse_moe_reference.json",
+      "sha256": "26457b015b0cac6fb45ed1d3a084696d73c679914b20ab53b8894e3b6d8e2858",
+      "size": 272
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "sha256": "74adb9402013e7a5351bc6bbcccc09e5529dda93e2a144cd1d0e5d1447806361",
+      "size": 1364
+    },
+    {
+      "path": "docs/BENCHMARK_PROTOCOL.md",
+      "sha256": "382c96424d6c6bb5a98e2a483c111f0eace2ea6378c4d93aee1bc77d083de334",
+      "size": 1217
+    },
+    {
+      "path": "docs/DATA_PROVENANCE.md",
+      "sha256": "021515d02661a7af0ea19530e9bc591980b16e9a7a3c0ec593e3e08c2550ca47",
+      "size": 1228
+    },
+    {
+      "path": "docs/FAQ.md",
+      "sha256": "128b0c1cf1c67a45d8759c2f63c9f1bf7a0318e931ce43dc89aa5c66e5b61353",
+      "size": 958
+    },
+    {
+      "path": "docs/FORMULA_CHEATSHEET.md",
+      "sha256": "af449618a1f80c23c16eb8da7c70704cf5581b65e62680cb1d0d7e09b9e7b23b",
+      "size": 570
+    },
+    {
+      "path": "docs/LIMITATIONS.md",
+      "sha256": "13b28bed184805f233ef96901c1cad56a0eb4a73490974f5a934ecbf0646c456",
+      "size": 703
+    },
+    {
+      "path": "docs/MATHEMATICAL_MODEL.md",
+      "sha256": "1cd2dda9b27f9fd08d5813dbdc68c23e1fd20559393506d902ce9c1b94095e77",
+      "size": 1759
+    },
+    {
+      "path": "docs/MEASURED_DATA.md",
+      "sha256": "e33264efea2d2ed2855451c9bda2714f22d0a32cb07cfa397b796949cc56f92f",
+      "size": 1381
+    },
+    {
+      "path": "docs/MODELING_GUIDE.md",
+      "sha256": "d5bb3056018a4f948dfd11c9511ee99431d078566588c6bd4298a5a3bff3dda3",
+      "size": 1335
+    },
+    {
+      "path": "docs/README.zh-TW.md",
+      "sha256": "fe76989fe61abd521b87a3c468899be17d33a47bf7fb5ab1440c9640a7bf0aea",
+      "size": 765
+    },
+    {
+      "path": "docs/USE_CASES.md",
+      "sha256": "3005d54385a3c5eed55c0773b6151bac38e9f29204daa6ba9c06796ee825f861",
+      "size": 1397
+    },
+    {
+      "path": "examples/compare_sparse_baseline.py",
+      "sha256": "53fe988dcb62e0b4c9866bcf830167d24f53e3d3731022af29438afeda22f958",
+      "size": 753
+    },
+    {
+      "path": "examples/evidence_contract.py",
+      "sha256": "3076817db98bb7df11d5f1c95cda71f7f05730f476a17c0377fe533e363e8b02",
+      "size": 301
+    },
+    {
+      "path": "examples/optimize_generic.py",
+      "sha256": "1f4c995c5a8012cc1c9f15d0936e9f40377afa26f562b4c9f83e78dec6ad3f6f",
+      "size": 412
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "75da690161db687b4d954b046d535286851c23028a9544063059756c0633be56",
+      "size": 884
+    },
+    {
+      "path": "scripts/benchmark_host.py",
+      "sha256": "9f1bcca5dd2fe0099c8aae1aa9e3667c9b9d75d59d94f7a02ce8f5d055506b8a",
+      "size": 3648
+    },
+    {
+      "path": "scripts/generate_reference_data.py",
+      "sha256": "a0fe5cdbb4acb27345f32b0a7b8fbc2d4ce4d07c587c9701b8ed4c747e21dbae",
+      "size": 2536
+    },
+    {
+      "path": "scripts/generate_trace_demo.py",
+      "sha256": "71ebd0efb6e3f2382b9f77ce7b560fd859f28c1a3d9932348a291227ab1cc5f9",
+      "size": 1687
+    },
+    {
+      "path": "scripts/validate_release.py",
+      "sha256": "0c3016c3f71c4bda5b2d4715bbb06be32069963e8d0e24180dac4c0bf41e9093",
+      "size": 1969
+    },
+    {
+      "path": "src/lexa_asymcompute/__init__.py",
+      "sha256": "7f8192b1ba9d266582a85bf4ec8eb21b4a18a812b1366f1c4cadfeea39e401a7",
+      "size": 576
+    },
+    {
+      "path": "src/lexa_asymcompute/__main__.py",
+      "sha256": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "size": 48
+    },
+    {
+      "path": "src/lexa_asymcompute/cli.py",
+      "sha256": "a886123ef048f9c28abf85b8d923663181ad142fed30910d8a4027bcaf89ed77",
+      "size": 5799
+    },
+    {
+      "path": "src/lexa_asymcompute/metrics.py",
+      "sha256": "4272972f60cb3bc297d825bcdab48c2c0b0adee69984df2af1ea2ee69f90ed00",
+      "size": 1297
+    },
+    {
+      "path": "src/lexa_asymcompute/models.py",
+      "sha256": "52a7fe5ddaa2b2cd7390dee0ee6b1844b7f816df5ca4cabb3d668f6ebe3ce8c9",
+      "size": 11719
+    },
+    {
+      "path": "src/lexa_asymcompute/moe.py",
+      "sha256": "2e25613fa388dc26c539fd5dc2229ecb7e0dbd4bef3de6f611f3557cf0d021b5",
+      "size": 4806
+    },
+    {
+      "path": "src/lexa_asymcompute/optimizer.py",
+      "sha256": "22ef7701498e68596b095c55370f6137211b691a9ba3e1f52788137ee7ec049a",
+      "size": 2392
+    },
+    {
+      "path": "src/lexa_asymcompute/provenance.py",
+      "sha256": "49ec3f14391242a2966ebe36abd73bb50b9776570ba76c8d2c0f63c90b902456",
+      "size": 1214
+    },
+    {
+      "path": "src/lexa_asymcompute/trace.py",
+      "sha256": "ecf1b2ecc9dc7173c46105c90eca8e5e8052cff0eb2aabfbb7aeb37ab20b48a4",
+      "size": 4774
+    },
+    {
+      "path": "tests/test_cli.py",
+      "sha256": "f3ab91e03331524d0fcfec0e28236351e3c80577e9d0f3ee15026018bb440aa2",
+      "size": 476
+    },
+    {
+      "path": "tests/test_examples.py",
+      "sha256": "1c137997aa599f3ace05edf09a78690addc9069986f3c15d33173ec962941028",
+      "size": 1320
+    },
+    {
+      "path": "tests/test_metrics.py",
+      "sha256": "5d2e051e645b8d3d8e7d4265cbd14eb2443c9c94b6821c804c922bd7a1fb0e33",
+      "size": 692
+    },
+    {
+      "path": "tests/test_models.py",
+      "sha256": "3b6918f5029e5e200ec3d75d71ac7d738afe884d10923c5683d702be36f951b1",
+      "size": 2036
+    },
+    {
+      "path": "tests/test_moe.py",
+      "sha256": "8fb86844204c826c56377f00478e67900a1ef6694847a174369d8b75ea247563",
+      "size": 1470
+    },
+    {
+      "path": "tests/test_optimizer.py",
+      "sha256": "f7c3c02a798a87411f246d9b1eaace0c163261912a5b2741a6bcdc853932558e",
+      "size": 1111
+    },
+    {
+      "path": "tests/test_provenance.py",
+      "sha256": "166c03aac6b9c5d3b497f8084430873730deaa15db7705e42cdaadc5726652e3",
+      "size": 764
+    },
+    {
+      "path": "tests/test_trace.py",
+      "sha256": "7a36bca7f8be9c66a2ee88e50cbaa57a350a2f2538dcd08e7bd36343464ff784",
+      "size": 1470
+    }
+  ],
+  "project": "Lexa AsymCompute",
+  "schema_version": "1.0",
+  "version": "2.0.0"
+}

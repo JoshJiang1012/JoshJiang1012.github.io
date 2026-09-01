@@ -1,0 +1,31 @@
+name: Benchmark submission
+description: Submit a measured asymmetric-compute result with complete provenance.
+title: "[benchmark] "
+body:
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware and software
+      description: CPU, GPU, memory, storage, OS, driver, runtime and commit hashes.
+    validations:
+      required: true
+  - type: textarea
+    id: workload
+    attributes:
+      label: Workload and correctness contract
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Results
+      description: Include repetitions, warm-up, P50/P95/P99, memory and power when available.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy
+      options:
+        - label: I removed prompts, generated text, credentials, private code and customer data.
+          required: true

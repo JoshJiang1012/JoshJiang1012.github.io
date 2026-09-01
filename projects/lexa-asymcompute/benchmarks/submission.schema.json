@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lexa AsymCompute benchmark submission",
+  "type": "object",
+  "required": ["classification", "timestamp_utc", "environment", "workload", "measurements"],
+  "properties": {
+    "classification": {"const": "observed_measurement"},
+    "timestamp_utc": {"type": "string"},
+    "environment": {"type": "object"},
+    "workload": {"type": "object"},
+    "measurements": {
+      "type": "object",
+      "required": ["p50_ms", "p95_ms", "p99_ms"],
+      "properties": {
+        "p50_ms": {"type": "number", "exclusiveMinimum": 0},
+        "p95_ms": {"type": "number", "exclusiveMinimum": 0},
+        "p99_ms": {"type": "number", "exclusiveMinimum": 0},
+        "peak_rss_mib": {"type": "number", "minimum": 0},
+        "peak_vram_mib": {"type": "number", "minimum": 0}
+      }
+    }
+  }
+}

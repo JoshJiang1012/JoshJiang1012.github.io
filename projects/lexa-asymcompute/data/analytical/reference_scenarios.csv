@@ -1,0 +1,4 @@
+scenario,classification,total_ms,units_per_second,placement
+generic-edge-pipeline,analytical_estimate_not_observed_benchmark,54.376542207792205,18.390283004363216,"{""cpu_ram"": 0.03, ""gpu"": 0.97}"
+sparse-three-tier-cpu-baseline,analytical_estimate_not_observed_benchmark,39.571999999999996,25.27039320731831,"{""gpu"": 0.0, ""nvme"": 0.0, ""ram"": 1.0}"
+sparse-three-tier-optimized,analytical_estimate_not_observed_benchmark,12.490277495941557,80.06227246151482,"{""gpu"": 0.6825, ""nvme"": 0.03, ""ram"": 0.2875}"

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lexa AsymCompute divisible workload",
+  "type": "object",
+  "required": ["name", "parallel_flops", "parallel_bytes"],
+  "properties": {
+    "name": {"type": "string", "minLength": 1},
+    "parallel_flops": {"type": "number", "minimum": 0},
+    "parallel_bytes": {"type": "number", "minimum": 0},
+    "parallel_resident_bytes": {"type": "number", "minimum": 0},
+    "serial_flops": {"type": "number", "minimum": 0},
+    "serial_bytes": {"type": "number", "minimum": 0},
+    "serial_device": {"type": ["string", "null"]},
+    "output_bytes": {"type": "number", "minimum": 0},
+    "aggregate_device": {"type": ["string", "null"]},
+    "sync_overhead_ms": {"type": "number", "minimum": 0},
+    "eligible_devices": {"type": "array", "items": {"type": "string"}},
+    "mandatory_flops_by_device": {"type": "object", "additionalProperties": {"type": "number", "minimum": 0}},
+    "mandatory_bytes_by_device": {"type": "object", "additionalProperties": {"type": "number", "minimum": 0}},
+    "mandatory_resident_bytes_by_device": {"type": "object", "additionalProperties": {"type": "number", "minimum": 0}}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,10 @@
+{
+  "name": "public-reference-sparse-moe-profile",
+  "total_parameters_b": 116.8292,
+  "active_parameters_b": 5.1,
+  "layers": 36,
+  "experts_per_layer": 128,
+  "active_experts_per_token": 4,
+  "dense_traffic_gb_per_unit": 3.0336,
+  "expert_traffic_gb_per_unit": 1.9036
+}

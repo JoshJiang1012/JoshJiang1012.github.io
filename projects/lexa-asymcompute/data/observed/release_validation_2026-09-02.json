@@ -1,0 +1,22 @@
+{
+  "checks": [
+    {
+      "details": [],
+      "name": "required_files",
+      "passed": true
+    },
+    {
+      "details": [],
+      "name": "public_naming",
+      "passed": true
+    },
+    {
+      "details": "test_formula_summary (test_cli.CliTests.test_formula_summary) ... ok\ntest_generic_profiles_load (test_examples.ExampleDataTests.test_generic_profiles_load) ... ok\ntest_observed_files_are_classified (test_examples.ExampleDataTests.test_observed_files_are_classified) ... ok\ntest_sparse_profiles_load (test_examples.ExampleDataTests.test_sparse_profiles_load) ... ok\ntest_balanced_is_zero_asymmetry (test_metrics.MetricTests.test_balanced_is_zero_asymmetry) ... ok\ntest_skew_has_positive_asymmetry (test_metrics.MetricTests.test_skew_has_positive_asymmetry) ... ok\ntest_speedup (test_metrics.MetricTests.test_speedup) ... ok\ntest_capacity_violation_rejected (test_models.ModelTests.test_capacity_violation_rejected) ... ok\ntest_estimate_returns_positive_result (test_models.ModelTests.test_estimate_returns_positive_result) ... ok\ntest_missing_link_rejected (test_models.ModelTests.test_missing_link_rejected) ... ok\ntest_optimizer_reproduces_near_reference (test_moe.MoETests.test_optimizer_reproduces_near_reference) ... ok\ntest_reference_placement (test_moe.MoETests.test_reference_placement) ... ok\ntest_reference_savings (test_moe.MoETests.test_reference_savings) ... ok\ntest_optimizer_favors_fast_device (test_optimizer.OptimizerTests.test_optimizer_favors_fast_device) ... ok\ntest_placements_cover_simplex (test_optimizer.OptimizerTests.test_placements_cover_simplex) ... ok\ntest_analytical_cannot_claim_measured (test_provenance.ProvenanceTests.test_analytical_cannot_claim_measured) ... ok\ntest_observed_record (test_provenance.ProvenanceTests.test_observed_record) ... ok\ntest_geometry_and_holdout (test_trace.TraceTests.test_geometry_and_holdout) ... ok\ntest_privacy_fail_closed (test_trace.TraceTests.test_privacy_fail_closed) ... ok\n\n----------------------------------------------------------------------\nRan 19 tests in 0.206s\n\nOK\n",
+      "name": "unit_tests",
+      "passed": true
+    }
+  ],
+  "classification": "observed_release_validation",
+  "measured": true,
+  "passed": true
+}

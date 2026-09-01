@@ -1,0 +1,16 @@
+{
+  "name": "edge-vision-preprocess-and-inference",
+  "parallel_flops": 720000000000.0,
+  "parallel_bytes": 18000000000.0,
+  "parallel_resident_bytes": 10737418240.0,
+  "serial_flops": 40000000000.0,
+  "serial_bytes": 600000000.0,
+  "serial_device": "gpu",
+  "output_bytes": 240000000.0,
+  "aggregate_device": "gpu",
+  "sync_overhead_ms": 0.35,
+  "eligible_devices": ["gpu", "cpu_ram"],
+  "mandatory_flops_by_device": {"gpu": 120000000000.0},
+  "mandatory_bytes_by_device": {"gpu": 3200000000.0},
+  "mandatory_resident_bytes_by_device": {"gpu": 2147483648.0}
+}
